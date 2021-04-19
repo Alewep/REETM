@@ -31,33 +31,17 @@ class TickEvent(Event):
     def __init__(self):
         self.name = "Tick event"
 
+class BeatEvent(Event):
+    def __init__(self, instrument, num_classe):
+        self.name = "Beat event"
+        self.instrument = instrument
+        self.num = num_classe
+        self.instrument.setTimeSend()
+    def getInstrument(self):
+        return self.instrument
 
-class KickEvent(Event):
-    def __init__(self, kick):
-        self.name = "Kick event"
-        self.kick = kick
-        self.kick.setTimeSend()
-
-    def getKick(self):
-        return self.kick
-
-class SnareEvent(Event):
-    def __init__(self, snare):
-        self.name = "Kick event"
-        self.snare = snare
-        self.snare.setTimeSend()
-
-    def getSnare(self):
-        return self.snare
-
-class HihatEvent(Event):
-    def __init__(self, hihat):
-        self.name = "Kick event"
-        self.hihat = hihat
-        self.hihat.setTimeSend()
-
-    def getHihat(self):
-        return self.hihat
+    def getNum(self):
+        return self.num
 
 class InputEvent(Event):
     """

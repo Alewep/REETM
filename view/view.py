@@ -32,65 +32,28 @@ class GraphicalView(object):
         self.snare_state = []
         self.hihat_state = []
 
-    def addKick(self, kick):
+    def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
-        kick.setDistanceInPixel(height - CHECKLIGNE)
-        self.kick_state.append(kick)
+        instrument.setDistanceInPixel(height - CHECKLIGNE)
+        liste_instrument.append(instrument)
 
-    def addSnare(self, snare):
+    def updateInstrument_state(self,liste_instrument):
         _, height = pygame.display.get_surface().get_size()
-        snare.setDistanceInPixel(height - CHECKLIGNE)
-        self.snare_state.append(snare)
-
-    def addHihat(self, hihat):
-        _, height = pygame.display.get_surface().get_size()
-        hihat.setDistanceInPixel(height - CHECKLIGNE)
-        self.hihat_state.append(hihat)
-
-    def updateKick_state(self):
-        _, height = pygame.display.get_surface().get_size()
-
-        for i in range(len(self.kick_state)):
-            self.kick_state[i].updatePosition()
-            #print(self.beats_state[i].getPosition())
-        listTemp = self.kick_state.copy()
+        for i in range(len(liste_instrument)):
+            liste_instrument[i].updatePosition()
+            # print(self.beats_state[i].getPosition())
+        listTemp = liste_instrument.copy()
         for i in range(len(listTemp)):
             if listTemp[i].getPosition() > height:
-                self.kick_state.pop(i)
+                liste_instrument.pop(i)
 
-    def updateSnare_state(self):
-        _, height = pygame.display.get_surface().get_size()
-
-        for i in range(len(self.snare_state)):
-            self.snare_state[i].updatePosition()
-            #print(self.beats_state[i].getPosition())
-        listTemp = self.snare_state.copy()
-        for i in range(len(listTemp)):
-            if listTemp[i].getPosition() > height:
-                self.snare_state.pop(i)
-
-    def updateHihat_state(self):
-        _, height = pygame.display.get_surface().get_size()
-
-        for i in range(len(self.hihat_state)):
-            self.hihat_state[i].updatePosition()
-            #print(self.beats_state[i].getPosition())
-        listTemp = self.hihat_state.copy()
-        for i in range(len(listTemp)):
-            if listTemp[i].getPosition() > height:
-                self.hihat_state.pop(i)
-
-    def drawKick(self):
+    def drawInstrument(self):
         for b in self.kick_state:
             color = (255, 0, 0)
             pygame.draw.circle(self.surface, color, (100, b.getPosition()), 25)
-
-    def drawSnare(self):
         for b in self.snare_state:
             color = (0, 0, 255)
             pygame.draw.circle(self.surface, color, (200, b.getPosition()), 25)
-
-    def drawHihat(self):
         for b in self.hihat_state:
             color = (255, 255, 0)
             pygame.draw.circle(self.surface, color, (300, b.getPosition()), 25)
@@ -110,12 +73,13 @@ class GraphicalView(object):
             self.renderall()
             # limit the redraw speed to 30 frames per second
             self.clock.tick(30)
-        elif isinstance(event, KickEvent):
-            self.addKick(event.getKick())
-        elif isinstance(event, SnareEvent):
-            self.addSnare(event.getSnare())
-        elif isinstance(event, HihatEvent):
-            self.addHihat(event.getHihat())
+        elif isinstance(event, BeatEvent):
+            if event.getNum() == 0:
+                self.addInstrument(event.getInstrument(),self.kick_state)
+            if event.getNum() == 1:
+                self.addInstrument(event.getInstrument(),self.snare_state)
+            if event.getNum() == 2:
+                self.addInstrument(event.getInstrument(),self.hihat_state)
 
     def renderall(self):
         """
@@ -133,12 +97,10 @@ class GraphicalView(object):
         #print(pygame.time.get_ticks())
         #print(pygame.time.Clock())
         self.surface = pygame.display.set_mode((width, height))
-        self.updateKick_state()
-        self.drawKick()
-        self.updateSnare_state()
-        self.drawSnare()
-        self.updateHihat_state()
-        self.drawHihat()
+        self.updateInstrument_state(self.kick_state)
+        self.updateInstrument_state(self.snare_state)
+        self.updateInstrument_state(self.hihat_state)
+        self.drawInstrument()
         color = (135, 206, 235)
         pygame.draw.line(self.surface, color,(0,height - CHECKLIGNE),(width,height - CHECKLIGNE))
         # flip the display to show whatever we drew

@@ -83,29 +83,11 @@ class GameEngine(object):
             newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(),event.getClasseInstrument()), self.gamescore)
             self.evManager.Post(newScoreEvent)
 
-    def kickNow(self):  # envoie un kick
-        if (len(self.listKick) != 0) and (pygame.time.get_ticks() >= (self.listKick[0] - TIMEADVENCE)):
-            #print("beat :", self.listBeat[0])
-            #print(self.listBeat)
-            newKickEvent = KickEvent(Beat(self.listKick[0]))
-            self.evManager.Post(newKickEvent)
-            self.listKick.pop(0)
-
-    def snareNow(self):  # envoie un snare
-        if (len(self.listSnare) != 0) and (pygame.time.get_ticks() >= (self.listSnare[0] - TIMEADVENCE)):
-            #print("beat :", self.listBeat[0])
-            #print(self.listBeat)
-            newSnareEvent = SnareEvent(Beat(self.listSnare[0]))
-            self.evManager.Post(newSnareEvent)
-            self.listSnare.pop(0)
-
-    def hihatNow(self):  # envoie un hihat
-        if (len(self.listHihat) != 0) and (pygame.time.get_ticks() >= (self.listHihat[0] - TIMEADVENCE)):
-            #print("beat :", self.listBeat[0])
-            #print(self.listBeat)
-            newHihatEvent = HihatEvent(Beat(self.listHihat[0]))
-            self.evManager.Post(newHihatEvent)
-            self.listHihat.pop(0)
+    def instrumentNow(self, liste_beat, num_classe):
+        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
+            newBeatEvent = BeatEvent(Beat(liste_beat[0]),num_classe)
+            self.evManager.Post(newBeatEvent)
+            liste_beat.pop(0)
 
     def inputVerifBeat(self, beat_time,instrument_class): #update score depending and returns the type of success (fail, bad, meh, good, excellent)
 
@@ -166,9 +148,9 @@ class GameEngine(object):
         while self.running:
             newTick = TickEvent()
             self.evManager.Post(newTick)
-            self.kickNow()
-            self.snareNow()
-            self.hihatNow()
+            self.instrumentNow(self.listKick,0)
+            self.instrumentNow(self.listSnare,1)
+            self.instrumentNow(self.listHihat,2)
             if not self.passTime and pygame.time.get_ticks() >= TIMEADVENCE:
                 pygame.mixer.music.unpause()
                 self.passTime = True
