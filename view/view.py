@@ -1,7 +1,9 @@
 import pygame
+import model.model
 from event.eventmanager import *
 
 CHECKLIGNE = 100
+
 
 
 class GraphicalView(object):
@@ -31,6 +33,7 @@ class GraphicalView(object):
         self.kick_state = []
         self.snare_state = []
         self.hihat_state = []
+        self.message = None
 
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
@@ -47,16 +50,40 @@ class GraphicalView(object):
             if listTemp[i].getPosition() > height:
                 liste_instrument.pop(i)
 
+
+    def taille(self,beat):
+        if beat.getTime() < pygame.time.get_ticks() - model.model.delta_excellent:
+            return 50
+        return 25
+
     def drawInstrument(self):
         for b in self.kick_state:
             color = (255, 0, 0)
-            pygame.draw.circle(self.surface, color, (100, b.getPosition()), 25)
+            pygame.draw.circle(self.surface, color, (100, b.getPosition()), self.taille(b))
         for b in self.snare_state:
             color = (0, 0, 255)
-            pygame.draw.circle(self.surface, color, (200, b.getPosition()), 25)
+            pygame.draw.circle(self.surface, color, (200, b.getPosition()), self.taille(b))
         for b in self.hihat_state:
             color = (255, 255, 0)
-            pygame.draw.circle(self.surface, color, (300, b.getPosition()), 25)
+            pygame.draw.circle(self.surface, color, (300, b.getPosition()), self.taille(b))
+
+    def displaySuccesScore(self, succes):
+        police = pygame.font.Font(None, 72)
+        if succes == 'fail':
+            texte = police.render("Fail !", True, pygame.Color(255,0,0))
+        if succes == 'bad':
+            texte = police.render("Bad !", True, pygame.Color(255,140,0))
+        if succes == 'meh':
+            texte = police.render("Meh !", True, pygame.Color(255,165,0))
+        if succes == 'good':
+            texte = police.render("Good !", True, pygame.Color(0,128,0))
+        if succes == 'excellent':
+            texte = police.render("Excellent !", True, pygame.Color(0,255,0))
+        score = police.render('Score : ' + str(self.model.getScore()),True,pygame.Color(255,255,255))
+        self.surface.blit(texte,[200,100])
+        self.surface.blit(score,[380,5])
+        pygame.display.flip()
+
 
     def notify(self, event):
         """
@@ -80,6 +107,8 @@ class GraphicalView(object):
                 self.addInstrument(event.getInstrument(),self.snare_state)
             if event.getNum() == 2:
                 self.addInstrument(event.getInstrument(),self.hihat_state)
+        elif isinstance(event, ScoreEvent):
+            self.message = event.getSucces()
 
     def renderall(self):
         """
@@ -101,6 +130,8 @@ class GraphicalView(object):
         self.updateInstrument_state(self.snare_state)
         self.updateInstrument_state(self.hihat_state)
         self.drawInstrument()
+        if self.message != None:
+            self.displaySuccesScore(self.message)
         color = (135, 206, 235)
         pygame.draw.line(self.surface, color,(0,height - CHECKLIGNE),(width,height - CHECKLIGNE))
         # flip the display to show whatever we drew

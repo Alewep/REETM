@@ -72,6 +72,7 @@ class ScoreEvent(Event):
     def getScore(self):
         return self.score
 
+
 class InitializeEvent(Event):
     """
     Tells all listeners to initialize themselves.

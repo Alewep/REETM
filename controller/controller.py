@@ -35,7 +35,6 @@ class Keyboard(object):
                         self.evManager.Post(QuitEvent())
                     if event.key in KeysList:
                         newInputEvent = InputEvent(KeysList.index(event.key))
-                        print(KeysList.index(event.key))
                         self.evManager.Post(newInputEvent)
 
 

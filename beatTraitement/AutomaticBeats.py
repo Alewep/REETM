@@ -3,6 +3,7 @@ import librosa
 import os
 from spleeter.separator import Separator
 from ADTLib import ADT
+import csv
 
     # classe regroupant les fonctions d'analyse du signal sonore des musiques
 class AutomaticBeats(object) :
@@ -15,6 +16,9 @@ class AutomaticBeats(object) :
     def preprocess(self):
         separator = Separator('spleeter:4stems')
         separator.separate_to_file(self.file, 'preprocessed')
+        os.remove('preprocessed/' + self.getmusicname()+'/vocals.wav')
+        os.remove('preprocessed/' + self.getmusicname() + '/other.wav')
+        os.remove('preprocessed/' + self.getmusicname() + '/bass.wav')
 
 # renvoie le nom du fichier audio sous forme de chaîne de caractères
     def getmusicname(self):
@@ -36,9 +40,13 @@ class AutomaticBeats(object) :
         return tempo, duration, times[beats_plp]
 
 #renvoie un dictionnaire de clé le nom des instruments (Kick, Hihat,Snare) et de valeur les localisations en secondes des "coups" des instruments
+#et
     def getinstruments(self):
         self.preprocess()
         file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
         drum_onsets = ADT([file])[0]
+        with open('preprocessed/'+self.getmusicname()+'/instruments.csv', 'w') as f:
+            writer = csv.writer(f)
+            for k, v in drum_onsets.items():
+                writer.writerow([k, v])
         return drum_onsets
-

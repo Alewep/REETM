@@ -1,10 +1,20 @@
-import numpy as np
 import pygame
 from beatTraitement.AutomaticBeats import *
 from event.eventmanager import *
 
 TIMEADVENCE = 1000 # time of advance in second
+delta_fail = 150 #ms
+delta_meh = 100 #ms
+delta_good = 50 #ms
+delta_excellent = 25 #ms
 
+#score depending on result
+
+score_fail = 0
+score_bad = 0.25
+score_meh = 0.5
+score_good = 0.75
+score_excellent = 1
 
 class Beat(object):
     def __init__(self, time):
@@ -42,7 +52,7 @@ class GameEngine(object):
     Tracks the game state.
     """
 
-    def __init__(self, evManager, tempo=180, duration=30):
+    def __init__(self, evManager):
         """
         evManager (EventManager): Allows posting messages to the event queue.
         
@@ -66,12 +76,13 @@ class GameEngine(object):
         self.listKick = self.arrayKick.tolist()
         self.listSnare = self.arraySnare.tolist()
         self.listHihat = self.arrayHihat.tolist()
-        self.tempo = tempo
-        self.duration = duration
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.running = False
         self.gamescore = 0
+
+    def getScore(self):
+        return self.gamescore
 
     def notify(self, event):
         """
@@ -80,7 +91,7 @@ class GameEngine(object):
         if isinstance(event, QuitEvent):
             self.running = False
         if isinstance(event, InputEvent):
-            newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(),event.getClasseInstrument()), self.gamescore)
+            newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()), self.gamescore)
             self.evManager.Post(newScoreEvent)
 
     def instrumentNow(self, liste_beat, num_classe):
@@ -92,18 +103,7 @@ class GameEngine(object):
     def inputVerifBeat(self, beat_time,instrument_class): #update score depending and returns the type of success (fail, bad, meh, good, excellent)
 
         # margin time to determine score for a beat
-        delta_fail = 150 #ms
-        delta_meh = 100 #ms
-        delta_good = 50 #ms
-        delta_excellent = 25 #ms
 
-        #score depending on result
-
-        score_fail = 0
-        score_bad = 0.25
-        score_meh = 0.5
-        score_good = 0.75
-        score_excellent = 1
         #determine the list we work on (kicks list, snare list... )depending on the key pressed
         if instrument_class == 0:
             work_list = self.arrayKick
