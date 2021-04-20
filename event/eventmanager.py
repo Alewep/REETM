@@ -66,6 +66,23 @@ class InitializeEvent(Event):
         self.name = "Initialize event"
 
 
+class StateChangeEvent(Event):
+    """
+    Change the model state machine.
+    Given a None state will pop() instead of push.
+    """
+
+    def __init__(self, state):
+        self.name = "State change event"
+        self.state = state
+
+    def __str__(self):
+        if self.state:
+            return '%s pushed %s' % (self.name, self.state)
+        else:
+            return '%s popped' % (self.name,)
+
+
 class EventManager(object):
     """
     We coordinate communication between the Model, View, and Controller.

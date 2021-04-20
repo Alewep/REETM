@@ -1,5 +1,6 @@
 import pygame
 from event.eventmanager import *
+from model import model
 
 CHECKLIGNE = 100
 
@@ -42,7 +43,10 @@ class GraphicalView(object):
             self.beats_state[i].updatePosition()
             print(self.beats_state[i].getPosition())
         listTemp = self.beats_state.copy()
-        for i in range(len(listTemp)):
+        for i in range(len(self.beats_state)):
+            print(listTemp)
+            print(self.beats_state)
+            print(i)
             if listTemp[i].getPosition() > height:
                 self.beats_state.pop(i)
 
@@ -62,22 +66,27 @@ class GraphicalView(object):
             # shut down the pygame graphics
             self.isinitialized = False
             pygame.quit()
-        elif isinstance(event, TickEvent):
-            self.renderall()
-            # limit the redraw speed to 30 frames per second
-            self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             self.addBeat(event.getBeat())
+            if not self.isinitialized:
+                return
+        elif isinstance(event, TickEvent):
+            currentstate = self.model.state.peek()
+            if currentstate == model.STATE_MENU:
+                self.rendermenu()
+            if currentstate == model.STATE_PLAY:
+                self.renderplay()
+            if currentstate == model.STATE_LIBRARY:
+                self.renderlibrary()
+            self.clock.tick(30)
 
-    def renderall(self):
+    def renderplay(self):
         """
         Draw the current game state on screen.
         Does nothing if isinitialized == False (pygame.init failed)
         """
         height = 600
         width = 1000
-        if not self.isinitialized:
-            return
         # clear display
         self.screen.fill((0, 0, 0))
         # draw some words on the screen
@@ -88,9 +97,15 @@ class GraphicalView(object):
         self.updateBeats_state()
         self.drawBeat()
         color = (135, 206, 235)
-        pygame.draw.line(self.surface, color,(0,height - CHECKLIGNE),(width,height - CHECKLIGNE))
+        pygame.draw.line(self.surface, color, (0, height - CHECKLIGNE), (width, height - CHECKLIGNE))
         # flip the display to show whatever we drew
         pygame.display.flip()
+
+    def rendermenu(self):
+        pass
+
+    def renderlibrary(self):
+        pass
 
     def initialize(self):
         """

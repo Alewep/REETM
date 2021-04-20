@@ -10,5 +10,7 @@ def run():
     keyboard = controller.Keyboard(evManager, gamemodel)
     graphics = view.GraphicalView(evManager, gamemodel)
     gamemodel.run()
+
+
 if __name__ == '__main__':
     run()

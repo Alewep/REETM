@@ -1,5 +1,7 @@
 import pygame
 from event.eventmanager import *
+from model import model
+
 
 class Keyboard(object):
     """
@@ -31,6 +33,19 @@ class Keyboard(object):
                     if event.key == pygame.K_ESCAPE:
                         self.evManager.Post(QuitEvent())
                     else:
-                        # post any other keys to the message queue for everyone else to see
-                        self.evManager.Post(InputEvent(event.unicode, None))
+                        currentstate = self.model.state.peek()
+                        if currentstate == model.STATE_MENU:
+                            self.keydownmenu(event)
+                        if currentstate == model.STATE_PLAY:
+                            self.keydownplay(event)
+                        if currentstate == model.STATE_LIBRARY:
+                            self.keydownhelp(event)
 
+    def keydownmenu(self):
+        pass
+
+    def keydowplay(self):
+        pass
+
+    def keydowlibrary(self):
+        pass
