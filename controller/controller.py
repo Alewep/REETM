@@ -34,7 +34,11 @@ class Keyboard(object):
                     if event.key == pygame.K_ESCAPE:
                         self.evManager.Post(QuitEvent())
                     if event.key in KeysList:
-                        newInputEvent = InputEvent(KeysList.index(event.key))
+                        newInputEvent = InputEvent(KeysList.index(event.key),True)
                         self.evManager.Post(newInputEvent)
-
-
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_ESCAPE:
+                        self.evManager.Post(QuitEvent())
+                    if event.key in KeysList:
+                        newInputEvent = InputEvent(KeysList.index(event.key),False)
+                        self.evManager.Post(newInputEvent)

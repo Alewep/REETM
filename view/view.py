@@ -4,7 +4,8 @@ from event.eventmanager import *
 
 CHECKLIGNE = 100
 
-
+screen_height = 600
+screen_width = 1000
 
 class GraphicalView(object):
     """
@@ -34,6 +35,9 @@ class GraphicalView(object):
         self.snare_state = []
         self.hihat_state = []
         self.message = None
+        self.a_pressed = False
+        self.z_pressed = False
+        self.e_pressed = False
 
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
@@ -51,23 +55,27 @@ class GraphicalView(object):
                 liste_instrument.pop(i)
 
 
-    def taille(self,beat):
-        if beat.getTime() < pygame.time.get_ticks() - model.model.delta_excellent:
-            return 50
-        return 25
+    def isexcellent(self,beat):
+        return (beat.getTime() < pygame.time.get_ticks() + model.model.delta_excellent) & (beat.getTime() > pygame.time.get_ticks() - model.model.delta_excellent)
 
     def drawInstrument(self):
         for b in self.kick_state:
-            color = (255, 0, 0)
-            pygame.draw.circle(self.surface, color, (100, b.getPosition()), self.taille(b))
+            color = (166, 89, 89)
+            if self.isexcellent(b):
+                color = (255, 0, 0)
+            pygame.draw.circle(self.surface, color, (400, b.getPosition()), 25)
         for b in self.snare_state:
-            color = (0, 0, 255)
-            pygame.draw.circle(self.surface, color, (200, b.getPosition()), self.taille(b))
+            color = (89, 89, 166)
+            if self.isexcellent(b):
+                color = (0, 0, 255)
+            pygame.draw.circle(self.surface, color, (500, b.getPosition()), 25)
         for b in self.hihat_state:
-            color = (255, 255, 0)
-            pygame.draw.circle(self.surface, color, (300, b.getPosition()), self.taille(b))
+            color = (166, 166, 89)
+            if self.isexcellent(b):
+                color = (255, 255, 0)
+            pygame.draw.circle(self.surface, color, (600, b.getPosition()), 25)
 
-    def displaySuccesScore(self, succes):
+    def displaySucces(self, succes):
         police = pygame.font.Font(None, 72)
         if succes == 'fail':
             texte = police.render("Fail !", True, pygame.Color(255,0,0))
@@ -79,11 +87,15 @@ class GraphicalView(object):
             texte = police.render("Good !", True, pygame.Color(0,128,0))
         if succes == 'excellent':
             texte = police.render("Excellent !", True, pygame.Color(0,255,0))
-        score = police.render('Score : ' + str(self.model.getScore()),True,pygame.Color(255,255,255))
-        self.surface.blit(texte,[200,100])
-        self.surface.blit(score,[380,5])
+        self.surface.blit(texte,[10,5])
         pygame.display.flip()
 
+    def displayScore(self):
+        police = pygame.font.Font(None, 72)
+        score_txt = 'Score : ' + str(self.model.getScore())
+        score = police.render(score_txt, True, pygame.Color(255, 255, 255))
+        self.surface.blit(score, [screen_width-score.get_width(), 5])
+        pygame.display.flip()
 
     def notify(self, event):
         """
@@ -109,14 +121,38 @@ class GraphicalView(object):
                 self.addInstrument(event.getInstrument(),self.hihat_state)
         elif isinstance(event, ScoreEvent):
             self.message = event.getSucces()
+        elif isinstance(event,InputEvent):
+            if event.getClasseInstrument() == 0:
+                self.a_pressed = event.ispressed()
+            if event.getClasseInstrument() == 1:
+                self.z_pressed = event.ispressed()
+            if event.getClasseInstrument() == 2:
+                self.e_pressed = event.ispressed()
+
+
+    def drawCheckCircles(self,height):
+        color = (135, 206, 235)
+
+        if self.a_pressed:
+            pygame.draw.circle(self.surface, pygame.color.Color(255, 0, 0), [400, height - CHECKLIGNE], 31, 6)
+        else :
+            pygame.draw.circle(self.surface, color, [400, height - CHECKLIGNE], 25, 1)
+        if self.z_pressed:
+            pygame.draw.circle(self.surface, pygame.color.Color(0, 0, 255), [500, height - CHECKLIGNE], 31, 6)
+        else :
+            pygame.draw.circle(self.surface, color, [500, height - CHECKLIGNE], 25, 1)
+        if self.e_pressed:
+            pygame.draw.circle(self.surface, pygame.color.Color(255, 255, 0), [600, height - CHECKLIGNE], 31, 6)
+        else :
+            pygame.draw.circle(self.surface, color, [600, height - CHECKLIGNE], 25, 1)
+
 
     def renderall(self):
         """
         Draw the current game state on screen.
         Does nothing if isinitialized == False (pygame.init failed)
         """
-        height = 600
-        width = 1000
+
         if not self.isinitialized:
             return
         # clear display
@@ -125,15 +161,15 @@ class GraphicalView(object):
         # Initializing surface
         #print(pygame.time.get_ticks())
         #print(pygame.time.Clock())
-        self.surface = pygame.display.set_mode((width, height))
+        self.surface = pygame.display.set_mode((screen_width, screen_height))
         self.updateInstrument_state(self.kick_state)
         self.updateInstrument_state(self.snare_state)
         self.updateInstrument_state(self.hihat_state)
         self.drawInstrument()
         if self.message != None:
-            self.displaySuccesScore(self.message)
-        color = (135, 206, 235)
-        pygame.draw.line(self.surface, color,(0,height - CHECKLIGNE),(width,height - CHECKLIGNE))
+            self.displaySucces(self.message)
+        self.displayScore()
+        self.drawCheckCircles(screen_height)
         # flip the display to show whatever we drew
         pygame.display.flip()
 

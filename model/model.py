@@ -91,8 +91,9 @@ class GameEngine(object):
         if isinstance(event, QuitEvent):
             self.running = False
         if isinstance(event, InputEvent):
-            newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()), self.gamescore)
-            self.evManager.Post(newScoreEvent)
+            if event.ispressed():
+                newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()), self.gamescore)
+                self.evManager.Post(newScoreEvent)
 
     def instrumentNow(self, liste_beat, num_classe):
         if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):

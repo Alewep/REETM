@@ -48,16 +48,20 @@ class InputEvent(Event):
     Keyboard or mouse input event.
     """
 
-    def __init__(self, instrumentclass): #instrumentclass is int
+    def __init__(self, instrumentclass,pressed): #instrumentclass is int
         self.name = "Input event"
         self.classe = instrumentclass
         self.time = pygame.time.get_ticks()
+        self.pressed = pressed
 
     def getTime(self):
         return self.time
 
     def getClasseInstrument(self):
         return self.classe
+
+    def ispressed(self):
+        return self.pressed
 
 class ScoreEvent(Event):
 
