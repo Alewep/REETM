@@ -39,6 +39,15 @@ class BeatEvent(Event):
         return self.beat
 
 
+class MouseClickEvent(Event):
+    def __init__(self, pos):
+        self.pos = pos
+        self.name = "Mouse click event"
+
+    def getPos(self):
+        return self.pos
+
+
 class InputEvent(Event):
     """
     Keyboard or mouse input event.

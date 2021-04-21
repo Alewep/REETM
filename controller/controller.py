@@ -32,20 +32,24 @@ class Keyboard(object):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.evManager.Post(QuitEvent())
-                    else:
-                        currentstate = self.model.state.peek()
-                        if currentstate == model.STATE_MENU:
-                            self.keydownmenu(event)
-                        if currentstate == model.STATE_PLAY:
-                            self.keydownplay(event)
-                        if currentstate == model.STATE_LIBRARY:
-                            self.keydownhelp(event)
+                else:
+                    currentstate = self.model.state.peek()
+                    if currentstate == model.STATE_MENU:
+                        self.keydownmenu(event)
+                    if currentstate == model.STATE_PLAY:
+                        self.keydownplay(event)
+                    if currentstate == model.STATE_LIBRARY:
+                        self.keydownhelp(event)
 
-    def keydownmenu(self):
+    def keydownmenu(self, event):
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            pos = pygame.mouse.get_pos()
+            self.evManager.Post(MouseClickEvent(pos))
+            print(pos)
+
+    def keydownplay(self, event):
         pass
 
-    def keydowplay(self):
-        pass
-
-    def keydowlibrary(self):
+    def keydownlibrary(self, event):
         pass

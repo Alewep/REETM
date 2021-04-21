@@ -2,7 +2,7 @@ import pygame
 from event.eventmanager import *
 from beatTraitement.AutomaticBeats import AutomaticBeats
 
-TIMEADVENCE = 1000 # time of advance in second
+TIMEADVENCE = 1000  # time of advance in second
 
 
 class Beat(object):
@@ -36,43 +36,79 @@ class Beat(object):
         self.position = durationLife * self.speed()
 
 
+pygame.font.init()
+
+
+class Button(object):
+    def __init__(self, left, top, width, height, callback, label=None, image=None,
+                 legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
+                 fontLegend=pygame.font.SysFont('Arial', 25)):
+
+        self.left = left
+        self.top = top
+        self.width = width
+        self.height = height
+
+        self.image = image
+        self.callback = callback
+        self.label = label
+        self.legend = legend
+        self.color = color
+        self.colorLabel = colorLabel
+        self.fontLabel = fontLabel
+        self.fontLegend = fontLegend
+
+    def surface(self):
+        return pygame.Surface((self.width, self.height))
+
+    def rectangle(self):
+        return self.surface().get_rect(topleft=(self.top, self.left))
+
+    def cliked(self, event):
+        if isinstance(event, MouseClickEvent):
+            if pygame.Rect.collidepoint(self.rectangle(), event.getPos()):
+                if self.callback:
+                    self.callback()
+
+    def draw(self, screen):
+        surfaceButton = self.surface()
+        if self.image is not None:
+            img = pygame.image.load(self.image).convert_alpha()
+            pygame.transform.smoothscale(img, (self.width, self.height), dest_surface=surfaceButton)
+        else:
+            pygame.Surface.fill(surfaceButton, self.color)
+
+        if self.label is not None:
+            labelSurface = self.fontLabel.render(self.label, True, self.colorLabel)
+            surfaceButton.blit(labelSurface, (self.width / 2, self.height / 2))
+
+        screen.blit(surfaceButton, (self.top, self.width))
+
+
 class GameEngine(object):
-    """
-    Tracks the game state.
-    """
 
-    def __init__(self, evManager, tempo=180, duration=30):
-        """
-        evManager (EventManager): Allows posting messages to the event queue.
-        
-        Attributes:
-        running (bool): True while the engine is online. Changed via QuitEvent().
-        tempo (int) : tempo in bpm of the music
-        duration (int) :  duration in seconds of the music
-        """
-        self.arrayBeat = AutomaticBeats('/home/etudiant/stage/REETM/amazonia.wav').getinstruments()['Snare'] * 1000 + TIMEADVENCE
-        file = "/home/etudiant/stage/REETM/amazonia.wav"
-        pygame.init()
-        pygame.mixer.init()
-        pygame.mixer.music.load(file)
-        pygame.mixer.music.play()
-        pygame.mixer.music.pause()
-        self.passTime = False
+    def __init__(self, evManager):
 
-        self.listBeat = self.arrayBeat.tolist()
-        self.tempo = tempo
-        self.duration = duration
+        # variable for game state
+        self.time_start = None
+        self.file = None
+        self.arrayBeat = None
+        self.listBeat = None
+        self.passTimeMusic = False
+        self.buttonMenuPlay = Button(100, 100, 100, 100,self.buttonPlay, label="Play")
+
+        # general
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.running = False
-
         self.state = StateMachine()
 
-    def notify(self, event):
-        """
-        Called by an event in the message queue. 
-        """
+    def buttonPlay(self):
+        self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
+    def notify(self, event):
+
+        self.buttonMenuPlay.cliked(event)
         if isinstance(event, QuitEvent):
             self.running = False
         if isinstance(event, StateChangeEvent):
@@ -84,6 +120,7 @@ class GameEngine(object):
             else:
                 # push a new state on the stack
                 self.state.push(event.state)
+                self.initialize()
 
     def beatNow(self):  # envoie un beat
         if (len(self.listBeat) != 0) and (pygame.time.get_ticks() >= (self.listBeat[0] - TIMEADVENCE)):
@@ -94,24 +131,39 @@ class GameEngine(object):
             self.listBeat.pop(0)
 
     def run(self):
-        """
-        Starts the game engine loop.
 
-        This pumps a Tick event into the message queue for each loop.
-        The loop ends when this object hears a QuitEvent in notify(). 
-        """
         self.running = True
         self.evManager.Post(InitializeEvent())
-        self.state.push(STATE_PLAY)
+        self.state.push(STATE_MENU)
         while self.running:
             newTick = TickEvent()
             self.evManager.Post(newTick)
-            self.beatNow()
-            print('test')
-            if not self.passTime and pygame.time.get_ticks() >= TIMEADVENCE:
-                pygame.mixer.music.unpause()
-                self.passTime = True
+            if self.state.peek() == STATE_MENU:
+                pass
+            elif self.state.peek() == STATE_LIBRARY:
+                pass
+            elif self.state.peek() == STATE_PLAY and self.file is not None:
+                self.beatNow()
+                if not self.passTimeMusic and pygame.time.get_ticks() >= TIMEADVENCE:
+                    self.passTimeMusic = True
+                    pygame.mixer.music.play()
+            else:
+                self.running = False
 
+    def initialize(self):
+        if self.state.peek() == STATE_MENU:
+            pass
+        elif self.state.peek() == STATE_LIBRARY:
+            pass
+        elif self.state.peek() == STATE_PLAY:
+
+            self.file = "/home/etudiant/stage/REETM/amazonia.wav"
+            self.arrayBeat = AutomaticBeats(self.file).getinstruments()['Kick'] * 1000 + TIMEADVENCE
+            self.listBeat = self.arrayBeat.tolist()
+            pygame.mixer.init()
+            pygame.mixer.music.load(self.file)
+
+            self.arrayBeat = self.arrayBeat + pygame.time.get_ticks()
 
 
 # State machine constants for the StateMachine class below

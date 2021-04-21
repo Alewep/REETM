@@ -9,7 +9,6 @@ class GraphicalView(object):
     """
     Draws the model state onto the screen.
     """
-
     def __init__(self, evManager, model):
         """
         evManager (EventManager): Allows posting messages to the event queue.
@@ -21,7 +20,6 @@ class GraphicalView(object):
         clock (pygame.time.Clock): keeps the fps constant.
         smallfont (pygame.Font): a small font.
         """
-        self.surface = pygame.display.set_mode((400, 300))
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.model = model
@@ -30,7 +28,6 @@ class GraphicalView(object):
         self.clock = None
         self.smallfont = None
         self.beats_state = []
-
     def addBeat(self, beat):
         _, height = pygame.display.get_surface().get_size()
         beat.setDistanceInPixel(height - CHECKLIGNE)
@@ -53,7 +50,7 @@ class GraphicalView(object):
     def drawBeat(self):
         for b in self.beats_state:
             color = (255, 0, 0)
-            pygame.draw.circle(self.surface, color, (100, b.getPosition()), 25)
+            pygame.draw.circle(self.screen, color, (100, b.getPosition()), 25)
 
     def notify(self, event):
         """
@@ -85,25 +82,23 @@ class GraphicalView(object):
         Draw the current game state on screen.
         Does nothing if isinitialized == False (pygame.init failed)
         """
-        height = 600
-        width = 1000
+        width, height = pygame.display.get_surface().get_size()
         # clear display
         self.screen.fill((0, 0, 0))
         # draw some words on the screen
         # Initializing surface
         print(pygame.time.get_ticks())
         print(pygame.time.Clock())
-        self.surface = pygame.display.set_mode((width, height))
         self.updateBeats_state()
         self.drawBeat()
         color = (135, 206, 235)
-        pygame.draw.line(self.surface, color, (0, height - CHECKLIGNE), (width, height - CHECKLIGNE))
+        pygame.draw.line(self.screen, color, (0, height - CHECKLIGNE), (width, height - CHECKLIGNE))
         # flip the display to show whatever we drew
         pygame.display.flip()
 
     def rendermenu(self):
-        pass
-
+        self.model.buttonMenuPlay.draw(self.screen)
+        pygame.display.flip()
     def renderlibrary(self):
         pass
 
@@ -111,12 +106,11 @@ class GraphicalView(object):
         """
         Set up the pygame graphical display and loads graphical resources.
         """
-
-        result = pygame.init()
-        pygame.font.init()
         pygame.display.set_caption('Reetm')
         self.screen = pygame.display.set_mode((600, 600))
         self.clock = pygame.time.Clock()
         print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
         self.isinitialized = True
+
+
