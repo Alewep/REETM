@@ -1,6 +1,8 @@
 import pygame
 from event.eventmanager import *
 from beatTraitement.AutomaticBeats import AutomaticBeats
+import tkinter
+import tkinter.filedialog
 
 TIMEADVENCE = 1000  # time of advance in second
 
@@ -95,7 +97,7 @@ class GameEngine(object):
         self.arrayBeat = None
         self.listBeat = None
         self.passTimeMusic = False
-        self.buttonMenuPlay = Button(100, 100, 100, 100,self.buttonPlay, label="Play")
+        self.buttonMenuPlay = Button(100, 100, 100, 100, self.buttonPlay, label="Play")
 
         # general
         self.evManager = evManager
@@ -104,6 +106,14 @@ class GameEngine(object):
         self.state = StateMachine()
 
     def buttonPlay(self):
+        top = tkinter.Tk()
+        top.withdraw()  # hide window
+        self.file = tkinter.filedialog.askopenfilename(parent=top, title="Select a Music in wav format",
+                                                       filetypes=(("wav files",
+                                                                   "*.wav*"),
+                                                                  ("all files",
+                                                                   "*.*")))
+        top.destroy()
         self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
     def notify(self, event):
@@ -156,14 +166,13 @@ class GameEngine(object):
         elif self.state.peek() == STATE_LIBRARY:
             pass
         elif self.state.peek() == STATE_PLAY:
+            self.arrayBeat = AutomaticBeats(self.file).getinstruments()['Snare'] * 1000 + TIMEADVENCE
 
-            self.file = "/home/etudiant/stage/REETM/amazonia.wav"
-            self.arrayBeat = AutomaticBeats(self.file).getinstruments()['Kick'] * 1000 + TIMEADVENCE
-            self.listBeat = self.arrayBeat.tolist()
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
 
             self.arrayBeat = self.arrayBeat + pygame.time.get_ticks()
+            self.listBeat = self.arrayBeat.tolist()
 
 
 # State machine constants for the StateMachine class below
