@@ -55,7 +55,7 @@ class GraphicalView(object):
                 liste_instrument.pop(i)
 
     def isexcellent(self,beat):
-        return (beat.getTime() < pygame.time.get_ticks() + model.model.delta_excellent) & (beat.getTime() > pygame.time.get_ticks() - model.model.delta_excellent)
+        return (beat.getTime() < pygame.time.get_ticks() + model.delta_excellent) & (beat.getTime() > pygame.time.get_ticks() - model.delta_excellent)
 
 #displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
@@ -94,7 +94,7 @@ class GraphicalView(object):
         police = pygame.font.Font(None, 72)
         score_txt = 'Score : ' + str(self.model.getScore())
         score = police.render(score_txt, True, pygame.Color(255, 255, 255))
-        self.surface.blit(score, [screen_width-score.get_width(), 5])
+        self.screen.blit(score, [screen_width-score.get_width(), 5])
         pygame.display.flip()
 
     def notify(self, event):
@@ -108,14 +108,6 @@ class GraphicalView(object):
             # shut down the pygame graphics
             self.isinitialized = False
             pygame.quit()
-        elif isinstance(event, TickEvent):
-            self.renderall()
-            # limit the redraw speed to 30 frames per second
-            self.clock.tick(30)
-        elif isinstance(event, BeatEvent):
-            self.addBeat(event.getBeat())
-            if not self.isinitialized:
-                return
         elif isinstance(event, TickEvent):
             currentstate = self.model.state.peek()
             if currentstate == model.STATE_MENU:
@@ -199,7 +191,7 @@ class GraphicalView(object):
         result = pygame.init()
         pygame.font.init()
         pygame.display.set_caption('Reetm')
-        self.screen = pygame.display.set_mode((600, 600))
+        self.screen = pygame.display.set_mode((1000, 600))
         self.clock = pygame.time.Clock()
         #print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)

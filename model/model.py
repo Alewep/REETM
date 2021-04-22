@@ -230,9 +230,10 @@ class GameEngine(object):
         elif self.state.peek() == STATE_LIBRARY:
             pass
         elif self.state.peek() == STATE_PLAY:
-            self.arrayKick = self.instruments[self.file] * 1000 + TIMEADVENCE
-            self.arraySnare = self.instruments[self.file] * 1000 + TIMEADVENCE
-            self.arrayHihat = self.instruments[self.file] * 1000 + TIMEADVENCE
+            instruments = AutomaticBeats(self.file).getinstruments()
+            self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE
+            self.arraySnare = instruments["Snare"] * 1000 + TIMEADVENCE
+            self.arrayHihat = instruments["Hihat"] * 1000 + TIMEADVENCE
 
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
