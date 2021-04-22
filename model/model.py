@@ -3,6 +3,9 @@ from beatTraitement.AutomaticBeats import *
 from event.eventmanager import *
 
 TIMEADVENCE = 1000 # time of advance in second
+
+#constants used to determine the score
+
 delta_fail = 150 #ms
 delta_meh = 100 #ms
 delta_good = 50 #ms
@@ -133,8 +136,8 @@ class GameEngine(object):
                         score_to_add = score_excellent
 
         self.gamescore += score_to_add
-        print("Succès :" + success_class)
-        print("Score actuel :" + str(self.gamescore))
+        #print("Succès :" + success_class)
+        #print("Score actuel :" + str(self.gamescore))
         return success_class
 
     def run(self):
@@ -149,9 +152,9 @@ class GameEngine(object):
         while self.running:
             newTick = TickEvent()
             self.evManager.Post(newTick)
-            self.instrumentNow(self.listKick,0)
-            self.instrumentNow(self.listSnare,1)
-            self.instrumentNow(self.listHihat,2)
+            self.instrumentNow(self.listKick, 0)
+            self.instrumentNow(self.listSnare, 1)
+            self.instrumentNow(self.listHihat, 2)
             if not self.passTime and pygame.time.get_ticks() >= TIMEADVENCE:
                 pygame.mixer.music.unpause()
                 self.passTime = True

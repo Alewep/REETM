@@ -45,10 +45,10 @@ class BeatEvent(Event):
 
 class InputEvent(Event):
     """
-    Keyboard or mouse input event.
+    Keyboard input event.
     """
 
-    def __init__(self, instrumentclass,pressed): #instrumentclass is int
+    def __init__(self, instrumentclass, pressed): #instrumentclass is int
         self.name = "Input event"
         self.classe = instrumentclass
         self.time = pygame.time.get_ticks()
@@ -65,9 +65,9 @@ class InputEvent(Event):
 
 class ScoreEvent(Event):
 
-    def __init__(self, success_class, current_score):
+    def __init__(self, type_success, current_score):
         self.name = "Score event"
-        self.type_success = success_class
+        self.type_success = type_success
         self.score = current_score
 
     def getSucces(self):

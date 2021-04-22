@@ -39,6 +39,7 @@ class GraphicalView(object):
         self.z_pressed = False
         self.e_pressed = False
 
+#add a hit to the screen
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
         instrument.setDistanceInPixel(height - CHECKLIGNE)
@@ -54,10 +55,10 @@ class GraphicalView(object):
             if listTemp[i].getPosition() > height:
                 liste_instrument.pop(i)
 
-
     def isexcellent(self,beat):
         return (beat.getTime() < pygame.time.get_ticks() + model.model.delta_excellent) & (beat.getTime() > pygame.time.get_ticks() - model.model.delta_excellent)
 
+#displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
         for b in self.kick_state:
             color = (166, 89, 89)
@@ -129,6 +130,7 @@ class GraphicalView(object):
             if event.getClasseInstrument() == 2:
                 self.e_pressed = event.ispressed()
 
+#displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
     def drawCheckCircles(self,height):
         color = (135, 206, 235)
