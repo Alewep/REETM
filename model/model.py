@@ -6,6 +6,20 @@ import tkinter.filedialog
 
 TIMEADVENCE = 1000  # time of advance in second
 
+#constants used to determine the score
+
+delta_fail = 150 #ms
+delta_meh = 100 #ms
+delta_good = 50 #ms
+delta_excellent = 25 #ms
+
+#score depending on result
+
+score_fail = 0
+score_bad = 0.25
+score_meh = 0.5
+score_good = 0.75
+score_excellent = 1
 
 class Beat(object):
     def __init__(self, time):
@@ -94,8 +108,14 @@ class GameEngine(object):
         # variable for game state
         self.time_start = None
         self.file = None
-        self.arrayBeat = None
-        self.listBeat = None
+        self.arrayKick = None
+        self.arraySnare = None
+        self.arrayHihat = None
+
+        self.listKick = None
+        self.listSnare = None
+        self.listHihat = None
+
         self.passTimeMusic = False
         self.buttonMenuPlay = Button(100, 100, 100, 100, self.buttonPlay, label="Play")
 
@@ -115,6 +135,10 @@ class GameEngine(object):
                                                                    "*.*")))
         top.destroy()
         self.evManager.Post(StateChangeEvent(STATE_PLAY))
+        self.gamescore = 0
+
+    def getScore(self):
+        return self.gamescore
 
     def notify(self, event):
 
@@ -131,14 +155,52 @@ class GameEngine(object):
                 # push a new state on the stack
                 self.state.push(event.state)
                 self.initialize()
+        if isinstance(event, InputEvent):
+            if event.ispressed():
+                newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()), self.gamescore)
+                self.evManager.Post(newScoreEvent)
 
-    def beatNow(self):  # envoie un beat
-        if (len(self.listBeat) != 0) and (pygame.time.get_ticks() >= (self.listBeat[0] - TIMEADVENCE)):
-            print("beat :", self.listBeat[0])
-            print(self.listBeat)
-            newBeatEvent = BeatEvent(Beat(self.listBeat[0]))
+    def instrumentNow(self, liste_beat, num_classe):
+        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
+            newBeatEvent = BeatEvent(Beat(liste_beat[0]),num_classe)
             self.evManager.Post(newBeatEvent)
-            self.listBeat.pop(0)
+            liste_beat.pop(0)
+
+    def inputVerifBeat(self, beat_time,instrument_class): #update score depending and returns the type of success (fail, bad, meh, good, excellent)
+
+        # margin time to determine score for a beat
+
+        #determine the list we work on (kicks list, snare list... )depending on the key pressed
+        if instrument_class == 0:
+            work_list = self.arrayKick
+        if instrument_class == 1:
+            work_list = self.arraySnare
+        if instrument_class == 2:
+            work_list = self.arrayHihat
+
+        list_fail = work_list[(work_list > beat_time - delta_fail) & (work_list < beat_time + delta_fail)]
+        success_class = 'fail'
+        score_to_add = score_fail
+        if len(list_fail) > 0:
+            list_meh = work_list[(work_list > beat_time - delta_meh ) & (work_list < beat_time + delta_meh)]
+            success_class = 'bad'
+            score_to_add = score_bad
+            if len(list_meh) > 0:
+                list_good = work_list[(work_list > beat_time - delta_good) & (work_list < beat_time + delta_good)]
+                success_class = 'meh'
+                score_to_add = score_meh
+                if len(list_good) > 0:
+                    list_excellent = work_list[(work_list > beat_time - delta_excellent) & (work_list < beat_time + delta_excellent)]
+                    success_class = 'good'
+                    score_to_add = score_good
+                    if len(list_excellent) > 0:
+                        success_class = 'excellent'
+                        score_to_add = score_excellent
+
+        self.gamescore += score_to_add
+        #print("Succès :" + success_class)
+        #print("Score actuel :" + str(self.gamescore))
+        return success_class
 
     def run(self):
 
@@ -153,7 +215,9 @@ class GameEngine(object):
             elif self.state.peek() == STATE_LIBRARY:
                 pass
             elif self.state.peek() == STATE_PLAY and self.file is not None:
-                self.beatNow()
+                self.instrumentNow(self.listKick, 0)
+                self.instrumentNow(self.listSnare, 1)
+                self.instrumentNow(self.listHihat, 2)
                 if not self.passTimeMusic and pygame.time.get_ticks() >= TIMEADVENCE:
                     self.passTimeMusic = True
                     pygame.mixer.music.play()
@@ -166,13 +230,21 @@ class GameEngine(object):
         elif self.state.peek() == STATE_LIBRARY:
             pass
         elif self.state.peek() == STATE_PLAY:
-            self.arrayBeat = AutomaticBeats(self.file).getinstruments()['Snare'] * 1000 + TIMEADVENCE
+            self.arrayKick = self.instruments[self.file] * 1000 + TIMEADVENCE
+            self.arraySnare = self.instruments[self.file] * 1000 + TIMEADVENCE
+            self.arrayHihat = self.instruments[self.file] * 1000 + TIMEADVENCE
 
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
 
-            self.arrayBeat = self.arrayBeat + pygame.time.get_ticks()
-            self.listBeat = self.arrayBeat.tolist()
+            self.arrayKick = self.arrayKick + pygame.time.get_ticks()
+            self.arraySnare = self.arraySnare + pygame.time.get_ticks()
+            self.arrayHihat = self.arrayHihat + pygame.time.get_ticks()
+
+            self.listKick = self.arrayKick.tolist()
+            self.listSnare = self.arraySnare.tolist()
+            self.listHihat = self.arrayHihat.tolist()
+            self.gamescore = 0
 
 
 # State machine constants for the StateMachine class below
@@ -221,3 +293,4 @@ class StateMachine(object):
         """
         self.statestack.append(state)
         return state
+

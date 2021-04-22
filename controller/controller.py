@@ -3,6 +3,9 @@ from event.eventmanager import *
 from model import model
 
 
+# keys used ingame
+KeysList = [pygame.K_a, pygame.K_z, pygame.K_e]
+
 class Keyboard(object):
     """
     Handles keyboard input.
@@ -28,10 +31,6 @@ class Keyboard(object):
                 # handle window manager closing our window
                 if event.type == pygame.QUIT:
                     self.evManager.Post(QuitEvent())
-                # handle key down events
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.evManager.Post(QuitEvent())
                 else:
                     currentstate = self.model.state.peek()
                     if currentstate == model.STATE_MENU:
@@ -49,7 +48,19 @@ class Keyboard(object):
             print(pos)
 
     def keydownplay(self, event):
-        pass
+        # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.evManager.Post(QuitEvent())
+            if event.key in KeysList:
+                newInputEvent = InputEvent(KeysList.index(event.key), True)
+                self.evManager.Post(newInputEvent)
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_ESCAPE:
+                self.evManager.Post(QuitEvent())
+            if event.key in KeysList:
+                newInputEvent = InputEvent(KeysList.index(event.key), False)
+                self.evManager.Post(newInputEvent)
 
     def keydownlibrary(self, event):
         pass
