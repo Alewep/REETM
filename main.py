@@ -7,6 +7,7 @@ import pygame
 
 
 def run():
+
     evManager = eventmanager.EventManager()
     gamemodel = model.GameEngine(evManager)
     keyboard = controller.Keyboard(evManager, gamemodel)

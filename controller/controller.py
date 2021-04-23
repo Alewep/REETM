@@ -41,7 +41,6 @@ class Keyboard(object):
                         self.keydownhelp(event)
 
     def keydownmenu(self, event):
-
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             self.evManager.Post(MouseClickEvent(pos))

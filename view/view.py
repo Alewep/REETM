@@ -1,11 +1,13 @@
 import pygame
 from event.eventmanager import *
 from model import model
+from moviepy.editor import *
 
 CHECKLIGNE = 100
 
-screen_height = 600
-screen_width = 1000
+screen_height = 720
+screen_width = 1280
+
 
 class GraphicalView(object):
     """
@@ -13,6 +15,7 @@ class GraphicalView(object):
     """
 
     def __init__(self, evManager, model):
+
         """
         evManager (EventManager): Allows posting messages to the event queue.
         model (GameEngine): a strong reference to the game Model.
@@ -29,6 +32,7 @@ class GraphicalView(object):
         self.isinitialized = False
         self.screen = None
         self.clock = None
+        self.imgMenu = None
         self.smallfont = None
         self.kick_state = []
         self.snare_state = []
@@ -38,13 +42,13 @@ class GraphicalView(object):
         self.z_pressed = False
         self.e_pressed = False
 
-#add a hit to the screen
+    # add a hit to the screen
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
         instrument.setDistanceInPixel(height - CHECKLIGNE)
         liste_instrument.append(instrument)
 
-    def updateInstrument_state(self,liste_instrument):
+    def updateInstrument_state(self, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
         for i in range(len(liste_instrument)):
             liste_instrument[i].updatePosition()
@@ -54,10 +58,11 @@ class GraphicalView(object):
             if listTemp[i].getPosition() > height:
                 liste_instrument.pop(i)
 
-    def isexcellent(self,beat):
-        return (beat.getTime() < pygame.time.get_ticks() + model.delta_excellent) & (beat.getTime() > pygame.time.get_ticks() - model.delta_excellent)
+    def isexcellent(self, beat):
+        return (beat.getTime() < pygame.time.get_ticks() + model.delta_excellent) & (
+                beat.getTime() > pygame.time.get_ticks() - model.delta_excellent)
 
-#displays beats, their color depending on whether they are in the "excellent" range
+    # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
         for b in self.kick_state:
             color = (166, 89, 89)
@@ -78,23 +83,23 @@ class GraphicalView(object):
     def displaySucces(self, succes):
         police = pygame.font.Font(None, 72)
         if succes == 'fail':
-            texte = police.render("Fail !", True, pygame.Color(255,0,0))
+            texte = police.render("Fail !", True, pygame.Color(255, 0, 0))
         if succes == 'bad':
-            texte = police.render("Bad !", True, pygame.Color(255,140,0))
+            texte = police.render("Bad !", True, pygame.Color(255, 140, 0))
         if succes == 'meh':
-            texte = police.render("Meh !", True, pygame.Color(255,165,0))
+            texte = police.render("Meh !", True, pygame.Color(255, 165, 0))
         if succes == 'good':
-            texte = police.render("Good !", True, pygame.Color(0,128,0))
+            texte = police.render("Good !", True, pygame.Color(0, 128, 0))
         if succes == 'excellent':
-            texte = police.render("Excellent !", True, pygame.Color(0,255,0))
-        self.screen.blit(texte,[10,5])
+            texte = police.render("Excellent !", True, pygame.Color(0, 255, 0))
+        self.screen.blit(texte, [10, 5])
         pygame.display.flip()
 
     def displayScore(self):
         police = pygame.font.Font(None, 72)
         score_txt = 'Score : ' + str(self.model.getScore())
         score = police.render(score_txt, True, pygame.Color(255, 255, 255))
-        self.screen.blit(score, [screen_width-score.get_width(), 5])
+        self.screen.blit(score, [screen_width - score.get_width(), 5])
         pygame.display.flip()
 
     def notify(self, event):
@@ -119,22 +124,20 @@ class GraphicalView(object):
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             if event.getNum() == 0:
-                self.addInstrument(event.getInstrument(),self.kick_state)
+                self.addInstrument(event.getInstrument(), self.kick_state)
             if event.getNum() == 1:
-                self.addInstrument(event.getInstrument(),self.snare_state)
+                self.addInstrument(event.getInstrument(), self.snare_state)
             if event.getNum() == 2:
-                self.addInstrument(event.getInstrument(),self.hihat_state)
+                self.addInstrument(event.getInstrument(), self.hihat_state)
         elif isinstance(event, ScoreEvent):
             self.message = event.getSucces()
-        elif isinstance(event,InputEvent):
+        elif isinstance(event, InputEvent):
             if event.getClasseInstrument() == 0:
                 self.a_pressed = event.ispressed()
             if event.getClasseInstrument() == 1:
                 self.z_pressed = event.ispressed()
             if event.getClasseInstrument() == 2:
                 self.e_pressed = event.ispressed()
-
-
 
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
@@ -164,13 +167,13 @@ class GraphicalView(object):
         self.screen.fill((0, 0, 0))
         # draw some words on the screen
         # Initializing surface
-        #print(pygame.time.get_ticks())
-        #print(pygame.time.Clock())
+        # print(pygame.time.get_ticks())
+        # print(pygame.time.Clock())
         self.updateInstrument_state(self.kick_state)
         self.updateInstrument_state(self.snare_state)
         self.updateInstrument_state(self.hihat_state)
         self.drawInstrument()
-        if self.message != None:
+        if self.message is not None:
             self.displaySucces(self.message)
         self.displayScore()
         self.drawCheckCircles(screen_height)
@@ -178,8 +181,18 @@ class GraphicalView(object):
         pygame.display.flip()
 
     def rendermenu(self):
+
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.imgMenu, (0, 0))
+
+        fontTitle = pygame.font.SysFont('arial',200)
+
+        title = fontTitle.render("Reetm", True, (133, 193, 233 ))
+        self.screen.blit(title, (400, 150))
+
         self.model.buttonMenuPlay.draw(self.screen)
         pygame.display.flip()
+
     def renderlibrary(self):
         pass
 
@@ -187,12 +200,11 @@ class GraphicalView(object):
         """
         Set up the pygame graphical display and loads graphical resources.
         """
-
-        result = pygame.init()
+        self.imgMenu = pygame.image.load("/home/etudiant/stage/REETM/reetm.jpg")
         pygame.font.init()
         pygame.display.set_caption('Reetm')
-        self.screen = pygame.display.set_mode((1000, 600))
+        self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
-        #print(self.clock)
+        # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
         self.isinitialized = True

@@ -6,20 +6,21 @@ import tkinter.filedialog
 
 TIMEADVENCE = 1000  # time of advance in second
 
-#constants used to determine the score
+# constants used to determine the score
 
-delta_fail = 150 #ms
-delta_meh = 100 #ms
-delta_good = 50 #ms
-delta_excellent = 25 #ms
+delta_fail = 150  # ms
+delta_meh = 100  # ms
+delta_good = 50  # ms
+delta_excellent = 25  # ms
 
-#score depending on result
+# score depending on result
 
 score_fail = 0
 score_bad = 0.25
 score_meh = 0.5
 score_good = 0.75
 score_excellent = 1
+
 
 class Beat(object):
     def __init__(self, time):
@@ -55,8 +56,8 @@ class Beat(object):
 pygame.font.init()
 
 
-class Button(object):
-    def __init__(self, left, top, width, height, callback, label=None, image=None,
+class StyleButton(object):
+    def __init__(self, left, top, width, height, label=None, image=None,
                  legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
                  fontLegend=pygame.font.SysFont('Arial', 25)):
 
@@ -66,7 +67,6 @@ class Button(object):
         self.height = height
 
         self.image = image
-        self.callback = callback
         self.label = label
         self.legend = legend
         self.color = color
@@ -74,31 +74,48 @@ class Button(object):
         self.fontLabel = fontLabel
         self.fontLegend = fontLegend
 
-    def surface(self):
+    def _surface(self):
         return pygame.Surface((self.width, self.height))
 
-    def rectangle(self):
-        return self.surface().get_rect(topleft=(self.top, self.left))
-
-    def cliked(self, event):
-        if isinstance(event, MouseClickEvent):
-            if pygame.Rect.collidepoint(self.rectangle(), event.getPos()):
-                if self.callback:
-                    self.callback()
+    def _rectangle(self):
+        return self._surface().get_rect(topleft=(self.top, self.left))
 
     def draw(self, screen):
-        surfaceButton = self.surface()
+        surfaceButton = self._surface()
         if self.image is not None:
-            img = pygame.image.load(self.image).convert_alpha()
-            pygame.transform.smoothscale(img, (self.width, self.height), dest_surface=surfaceButton)
+            surfaceButton = pygame.image.load(self.image).convert_alpha()
         else:
             pygame.Surface.fill(surfaceButton, self.color)
 
         if self.label is not None:
             labelSurface = self.fontLabel.render(self.label, True, self.colorLabel)
-            surfaceButton.blit(labelSurface, (self.width / 2, self.height / 2))
+            labelSurface_rect = labelSurface.get_rect(center=(self.width / 2, self.height / 2))
+            surfaceButton.blit(labelSurface, labelSurface_rect)
 
-        screen.blit(surfaceButton, (self.top, self.width))
+        screen.blit(surfaceButton, (self.top, self.left))
+
+
+class Button(StyleButton):
+    def __init__(self, left, top, width, height, callback, label=None, image=None,
+                 legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
+                 fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None):
+
+        super().__init__(left, top, width, height, label, image, legend, color, colorLabel, fontLabel, fontLegend)
+
+        self.callback = callback
+        self.placeHolder = placeHolder
+
+    def cliked(self, event):
+        if isinstance(event, MouseClickEvent):
+            if pygame.Rect.collidepoint(self._rectangle(), event.getPos()):
+                if self.callback:
+                    self.callback()
+
+    def draw(self, screen):
+        if self.placeHolder is not None and pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos()):
+            self.placeHolder.draw(screen)
+        else:
+            super().draw(screen)
 
 
 class GameEngine(object):
@@ -117,7 +134,9 @@ class GameEngine(object):
         self.listHihat = None
 
         self.passTimeMusic = False
-        self.buttonMenuPlay = Button(100, 100, 100, 100, self.buttonPlay, label="Play")
+        self.buttonMenuPlay = Button(600, 550, 191, 64, self.buttonPlay,
+                                     image="/home/etudiant/stage/REETM/tile000.png",
+                                     placeHolder=StyleButton(600, 550, 191, 64,image="/home/etudiant/stage/REETM/tile002.png"))
 
         # general
         self.evManager = evManager
@@ -157,20 +176,22 @@ class GameEngine(object):
                 self.initialize()
         if isinstance(event, InputEvent):
             if event.ispressed():
-                newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()), self.gamescore)
+                newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()),
+                                           self.gamescore)
                 self.evManager.Post(newScoreEvent)
 
     def instrumentNow(self, liste_beat, num_classe):
         if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
-            newBeatEvent = BeatEvent(Beat(liste_beat[0]),num_classe)
+            newBeatEvent = BeatEvent(Beat(liste_beat[0]), num_classe)
             self.evManager.Post(newBeatEvent)
             liste_beat.pop(0)
 
-    def inputVerifBeat(self, beat_time,instrument_class): #update score depending and returns the type of success (fail, bad, meh, good, excellent)
+    def inputVerifBeat(self, beat_time,
+                       instrument_class):  # update score depending and returns the type of success (fail, bad, meh, good, excellent)
 
         # margin time to determine score for a beat
 
-        #determine the list we work on (kicks list, snare list... )depending on the key pressed
+        # determine the list we work on (kicks list, snare list... )depending on the key pressed
         if instrument_class == 0:
             work_list = self.arrayKick
         if instrument_class == 1:
@@ -182,7 +203,7 @@ class GameEngine(object):
         success_class = 'fail'
         score_to_add = score_fail
         if len(list_fail) > 0:
-            list_meh = work_list[(work_list > beat_time - delta_meh ) & (work_list < beat_time + delta_meh)]
+            list_meh = work_list[(work_list > beat_time - delta_meh) & (work_list < beat_time + delta_meh)]
             success_class = 'bad'
             score_to_add = score_bad
             if len(list_meh) > 0:
@@ -190,7 +211,8 @@ class GameEngine(object):
                 success_class = 'meh'
                 score_to_add = score_meh
                 if len(list_good) > 0:
-                    list_excellent = work_list[(work_list > beat_time - delta_excellent) & (work_list < beat_time + delta_excellent)]
+                    list_excellent = work_list[
+                        (work_list > beat_time - delta_excellent) & (work_list < beat_time + delta_excellent)]
                     success_class = 'good'
                     score_to_add = score_good
                     if len(list_excellent) > 0:
@@ -198,8 +220,8 @@ class GameEngine(object):
                         score_to_add = score_excellent
 
         self.gamescore += score_to_add
-        #print("Succès :" + success_class)
-        #print("Score actuel :" + str(self.gamescore))
+        # print("Succès :" + success_class)
+        # print("Score actuel :" + str(self.gamescore))
         return success_class
 
     def run(self):
@@ -294,4 +316,3 @@ class StateMachine(object):
         """
         self.statestack.append(state)
         return state
-
