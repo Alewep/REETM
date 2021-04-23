@@ -15,7 +15,7 @@ delta_excellent = 25  # ms
 
 # score depending on result
 
-score_fail = 0
+score_fail = -0.5
 score_bad = 0.25
 score_meh = 0.5
 score_good = 0.75
@@ -34,12 +34,6 @@ class Beat(object):
 
     def setTimeSend(self):
         self.timeSend = pygame.time.get_ticks()
-
-    def getPosition(self):
-        return self.position
-
-    def getTime(self):
-        return self.time
 
     def timeToArrive(self):
         return self.time - self.timeSend
@@ -107,7 +101,7 @@ class Button(StyleButton):
 
     def cliked(self, event):
         if isinstance(event, MouseClickEvent):
-            if pygame.Rect.collidepoint(self._rectangle(), event.getPos()):
+            if pygame.Rect.collidepoint(self._rectangle(), event.pos):
                 if self.callback:
                     self.callback()
 
@@ -135,8 +129,8 @@ class GameEngine(object):
 
         self.passTimeMusic = False
         self.buttonMenuPlay = Button(600, 550, 191, 64, self.buttonPlay,
-                                     image="/home/etudiant/stage/REETM/tile000.png",
-                                     placeHolder=StyleButton(600, 550, 191, 64,image="/home/etudiant/stage/REETM/tile002.png"))
+                                     image="tile000.png",
+                                     placeHolder=StyleButton(600, 550, 191, 64,image="tile002.png"))
 
         # general
         self.evManager = evManager
@@ -156,9 +150,6 @@ class GameEngine(object):
         self.evManager.Post(StateChangeEvent(STATE_PLAY))
         self.gamescore = 0
 
-    def getScore(self):
-        return self.gamescore
-
     def notify(self, event):
 
         self.buttonMenuPlay.cliked(event)
@@ -175,9 +166,8 @@ class GameEngine(object):
                 self.state.push(event.state)
                 self.initialize()
         if isinstance(event, InputEvent):
-            if event.ispressed():
-                newScoreEvent = ScoreEvent(self.inputVerifBeat(event.getTime(), event.getClasseInstrument()),
-                                           self.gamescore)
+            if event.pressed:
+                newScoreEvent = ScoreEvent(self.inputVerifBeat(event.time, event.classe), self.gamescore)
                 self.evManager.Post(newScoreEvent)
 
     def instrumentNow(self, liste_beat, num_classe):

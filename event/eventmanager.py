@@ -37,19 +37,12 @@ class BeatEvent(Event):
         self.instrument = instrument
         self.num = num_classe
         self.instrument.setTimeSend()
-    def getInstrument(self):
-        return self.instrument
 
-    def getNum(self):
-        return self.num
 
 class MouseClickEvent(Event):
     def __init__(self, pos):
         self.pos = pos
         self.name = "Mouse click event"
-
-    def getPos(self):
-        return self.pos
 
 
 class InputEvent(Event):
@@ -63,14 +56,6 @@ class InputEvent(Event):
         self.time = pygame.time.get_ticks()
         self.pressed = pressed
 
-    def getTime(self):
-        return self.time
-
-    def getClasseInstrument(self):
-        return self.classe
-
-    def ispressed(self):
-        return self.pressed
 
 class ScoreEvent(Event):
 
@@ -79,11 +64,6 @@ class ScoreEvent(Event):
         self.type_success = type_success
         self.score = current_score
 
-    def getSucces(self):
-        return self.type_success
-
-    def getScore(self):
-        return self.score
 
 
 class InitializeEvent(Event):

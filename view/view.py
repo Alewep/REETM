@@ -55,12 +55,12 @@ class GraphicalView(object):
             # print(self.beats_state[i].getPosition())
         listTemp = liste_instrument.copy()
         for i in range(len(listTemp)):
-            if listTemp[i].getPosition() > height:
+            if listTemp[i].position > height:
                 liste_instrument.pop(i)
 
     def isexcellent(self, beat):
-        return (beat.getTime() < pygame.time.get_ticks() + model.delta_excellent) & (
-                beat.getTime() > pygame.time.get_ticks() - model.delta_excellent)
+        return (beat.time < pygame.time.get_ticks() + model.delta_excellent) & (
+                beat.time > pygame.time.get_ticks() - model.delta_excellent)
 
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
@@ -68,17 +68,17 @@ class GraphicalView(object):
             color = (166, 89, 89)
             if self.isexcellent(b):
                 color = (255, 0, 0)
-            pygame.draw.circle(self.screen, color, (400, b.getPosition()), 25)
+            pygame.draw.circle(self.screen, color, (400, b.position), 25)
         for b in self.snare_state:
             color = (89, 89, 166)
             if self.isexcellent(b):
                 color = (0, 0, 255)
-            pygame.draw.circle(self.screen, color, (500, b.getPosition()), 25)
+            pygame.draw.circle(self.screen, color, (500, b.position), 25)
         for b in self.hihat_state:
             color = (166, 166, 89)
             if self.isexcellent(b):
                 color = (255, 255, 0)
-            pygame.draw.circle(self.screen, color, (600, b.getPosition()), 25)
+            pygame.draw.circle(self.screen, color, (600, b.position), 25)
 
     def displaySucces(self, succes):
         police = pygame.font.Font(None, 72)
@@ -97,7 +97,7 @@ class GraphicalView(object):
 
     def displayScore(self):
         police = pygame.font.Font(None, 72)
-        score_txt = 'Score : ' + str(self.model.getScore())
+        score_txt = 'Score : ' + str(self.model.gamescore)
         score = police.render(score_txt, True, pygame.Color(255, 255, 255))
         self.screen.blit(score, [screen_width - score.get_width(), 5])
         pygame.display.flip()
@@ -123,21 +123,21 @@ class GraphicalView(object):
                 self.renderlibrary()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
-            if event.getNum() == 0:
-                self.addInstrument(event.getInstrument(), self.kick_state)
-            if event.getNum() == 1:
-                self.addInstrument(event.getInstrument(), self.snare_state)
-            if event.getNum() == 2:
-                self.addInstrument(event.getInstrument(), self.hihat_state)
+            if event.num == 0:
+                self.addInstrument(event.instrument, self.kick_state)
+            if event.num == 1:
+                self.addInstrument(event.instrument, self.snare_state)
+            if event.num == 2:
+                self.addInstrument(event.instrument, self.hihat_state)
         elif isinstance(event, ScoreEvent):
-            self.message = event.getSucces()
+            self.message = event.type_success
         elif isinstance(event, InputEvent):
-            if event.getClasseInstrument() == 0:
-                self.a_pressed = event.ispressed()
-            if event.getClasseInstrument() == 1:
-                self.z_pressed = event.ispressed()
-            if event.getClasseInstrument() == 2:
-                self.e_pressed = event.ispressed()
+            if event.classe == 0:
+                self.a_pressed = event.pressed
+            if event.classe == 1:
+                self.z_pressed = event.pressed
+            if event.classe == 2:
+                self.e_pressed = event.pressed
 
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
@@ -200,7 +200,7 @@ class GraphicalView(object):
         """
         Set up the pygame graphical display and loads graphical resources.
         """
-        self.imgMenu = pygame.image.load("/home/etudiant/stage/REETM/reetm.jpg")
+        self.imgMenu = pygame.image.load("reetm.jpg")
         pygame.font.init()
         pygame.display.set_caption('Reetm')
         self.screen = pygame.display.set_mode((screen_width, screen_height))
