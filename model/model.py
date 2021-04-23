@@ -4,7 +4,7 @@ from beatTraitement.AutomaticBeats import AutomaticBeats
 import tkinter
 import tkinter.filedialog
 
-TIMEADVENCE = 1000  # time of advance in second
+TIMEADVENCE = 2000  # time of advance in second
 
 # constants used to determine the score
 

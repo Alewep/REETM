@@ -3,7 +3,7 @@ from event.eventmanager import *
 from model import model
 from moviepy.editor import *
 
-CHECKLIGNE = 100
+CHECKLIGNE = 150
 
 screen_height = 720
 screen_width = 1280
