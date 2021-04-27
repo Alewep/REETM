@@ -3,10 +3,21 @@ from event.eventmanager import *
 from model import model
 from moviepy.editor import *
 
+from model.model import *
+
 CHECKLIGNE = 150
+
+
 
 screen_height = 720
 screen_width = 1280
+
+
+BUTTONMENUPLAY = Button(600, 550, 191, 64,
+                        image="tile000.png",
+                        placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
+
+
 
 
 class GraphicalView(object):
@@ -190,7 +201,7 @@ class GraphicalView(object):
         title = fontTitle.render("Reetm", True, (133, 193, 233 ))
         self.screen.blit(title, (400, 150))
 
-        self.model.buttonMenuPlay.draw(self.screen)
+        BUTTONMENUPLAY.draw(self.screen)
         pygame.display.flip()
 
     def renderlibrary(self):

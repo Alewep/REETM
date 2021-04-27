@@ -31,6 +31,7 @@ class TickEvent(Event):
     def __init__(self):
         self.name = "Tick event"
 
+
 class BeatEvent(Event):
     def __init__(self, instrument, num_classe):
         self.name = "Beat event"
@@ -50,7 +51,7 @@ class InputEvent(Event):
     Keyboard input event.
     """
 
-    def __init__(self, instrumentclass, pressed): #instrumentclass is int
+    def __init__(self, instrumentclass, pressed):  # instrumentclass is int
         self.name = "Input event"
         self.classe = instrumentclass
         self.time = pygame.time.get_ticks()
@@ -64,6 +65,10 @@ class ScoreEvent(Event):
         self.type_success = type_success
         self.score = current_score
 
+
+class ButtonMenuPlayEvent(Event):
+    def __init__(self):
+        self.name = "Button menu play event"
 
 
 class InitializeEvent(Event):
@@ -131,4 +136,3 @@ class EventManager(object):
 
         for listener in self.listeners.keys():
             listener.notify(event)
-

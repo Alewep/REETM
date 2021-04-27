@@ -90,20 +90,18 @@ class StyleButton(object):
 
 
 class Button(StyleButton):
-    def __init__(self, left, top, width, height, callback, label=None, image=None,
+    def __init__(self, left, top, width, height, label=None, image=None,
                  legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
                  fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None):
 
         super().__init__(left, top, width, height, label, image, legend, color, colorLabel, fontLabel, fontLegend)
-
-        self.callback = callback
         self.placeHolder = placeHolder
 
-    def cliked(self, event):
-        if isinstance(event, MouseClickEvent):
-            if pygame.Rect.collidepoint(self._rectangle(), event.pos):
-                if self.callback:
-                    self.callback()
+    def cliked(self, pygameEventListener):
+        for event in pygameEventListener:
+            if event.type == pygame.MOUSEBUTTONUP:
+                return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
+        return False
 
     def draw(self, screen):
         if self.placeHolder is not None and pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos()):
@@ -128,9 +126,6 @@ class GameEngine(object):
         self.listHihat = None
 
         self.passTimeMusic = False
-        self.buttonMenuPlay = Button(600, 550, 191, 64, self.buttonPlay,
-                                     image="tile000.png",
-                                     placeHolder=StyleButton(600, 550, 191, 64,image="tile002.png"))
 
         # general
         self.evManager = evManager
@@ -152,7 +147,6 @@ class GameEngine(object):
 
     def notify(self, event):
 
-        self.buttonMenuPlay.cliked(event)
         if isinstance(event, QuitEvent):
             self.running = False
         if isinstance(event, StateChangeEvent):
@@ -169,6 +163,8 @@ class GameEngine(object):
             if event.pressed:
                 newScoreEvent = ScoreEvent(self.inputVerifBeat(event.time, event.classe), self.gamescore)
                 self.evManager.Post(newScoreEvent)
+        if isinstance(event, ButtonMenuPlayEvent):
+            self.buttonPlay()
 
     def instrumentNow(self, liste_beat, num_classe):
         if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):

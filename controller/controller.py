@@ -1,10 +1,12 @@
 import pygame
+
+import view.view
 from event.eventmanager import *
 from model import model
 
-
 # keys used ingame
 KeysList = [pygame.K_a, pygame.K_z, pygame.K_e]
+
 
 class Keyboard(object):
     """
@@ -19,6 +21,7 @@ class Keyboard(object):
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.model = model
+        self.listEvent = None
 
     def notify(self, event):
         """
@@ -27,7 +30,8 @@ class Keyboard(object):
 
         if isinstance(event, TickEvent):
             # Called for each game tick. We check our keyboard presses here.
-            for event in pygame.event.get():
+            self.listEvent = pygame.event.get()
+            for event in self.listEvent:
                 # handle window manager closing our window
                 if event.type == pygame.QUIT:
                     self.evManager.Post(QuitEvent())
@@ -41,10 +45,8 @@ class Keyboard(object):
                         self.keydownhelp(event)
 
     def keydownmenu(self, event):
-        if event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            self.evManager.Post(MouseClickEvent(pos))
-            print(pos)
+        if view.view.BUTTONMENUPLAY.cliked(self.listEvent):
+            self.evManager.Post(ButtonMenuPlayEvent())
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
