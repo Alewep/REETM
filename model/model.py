@@ -228,6 +228,8 @@ class GameEngine(object):
                 pass
             elif self.state.peek() == STATE_LIBRARY:
                 pass
+            elif self.state.peek() == STATE_ENDGAME:
+                pass
             elif self.state.peek() == STATE_PLAY and self.file is not None:
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
@@ -244,6 +246,8 @@ class GameEngine(object):
         if self.state.peek() == STATE_MENU:
             pass
         elif self.state.peek() == STATE_LIBRARY:
+            pass
+        elif self.state.peek() == STATE_ENDGAME:
             pass
         elif self.state.peek() == STATE_PLAY:
             musicfile = AutomaticBeats(self.file)
