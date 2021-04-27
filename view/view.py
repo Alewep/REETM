@@ -17,7 +17,9 @@ BUTTONMENUPLAY = Button(600, 550, 191, 64,
                         image="tile000.png",
                         placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
 
-
+BUTTONMENURETURN = Button(600, 550, 191, 64,
+                        image="tile000.png",
+                        placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
 
 
 class GraphicalView(object):
@@ -132,6 +134,8 @@ class GraphicalView(object):
                 self.renderplay()
             if currentstate == model.STATE_LIBRARY:
                 self.renderlibrary()
+            if currentstate == model.STATE_ENDGAME:
+                self.renderendgame()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             if event.num == 0:
@@ -206,6 +210,19 @@ class GraphicalView(object):
 
     def renderlibrary(self):
         pass
+
+    def renderendgame(self):
+
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.imgMenu, (0, 0))
+
+        fontTitle = pygame.font.SysFont('arial', 100)
+
+        final_score = fontTitle.render("Score : "+str(self.model.gamescore) + "!", True, (133, 193, 233))
+        self.screen.blit(final_score, (375, 300))
+
+        BUTTONMENURETURN.draw(self.screen)
+        pygame.display.flip()
 
     def initialize(self):
         """

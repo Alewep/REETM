@@ -145,6 +145,10 @@ class GameEngine(object):
         self.evManager.Post(StateChangeEvent(STATE_PLAY))
         self.gamescore = 0
 
+    def buttonReturn(self):
+        self.evManager.Post(StateChangeEvent(STATE_MENU))
+        self.gamescore = 0
+
     def notify(self, event):
 
         if isinstance(event, QuitEvent):
@@ -165,6 +169,8 @@ class GameEngine(object):
                 self.evManager.Post(newScoreEvent)
         if isinstance(event, ButtonMenuPlayEvent):
             self.buttonPlay()
+        if isinstance(event, ButtonMenuReturnEvent):
+            self.buttonReturn()
 
     def instrumentNow(self, liste_beat, num_classe):
         if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
@@ -226,9 +232,11 @@ class GameEngine(object):
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
                 self.instrumentNow(self.listHihat, 2)
-                if not self.passTimeMusic and pygame.time.get_ticks() >= TIMEADVENCE:
+                if not self.passTimeMusic and pygame.time.get_ticks() >= TIMEADVENCE + self.time_start:
                     self.passTimeMusic = True
                     pygame.mixer.music.play()
+                if pygame.time.get_ticks() >= self.duration + self.time_start:
+                    self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
             else:
                 self.running = False
 
@@ -238,14 +246,17 @@ class GameEngine(object):
         elif self.state.peek() == STATE_LIBRARY:
             pass
         elif self.state.peek() == STATE_PLAY:
-            instruments = AutomaticBeats(self.file).getinstruments()
+            musicfile = AutomaticBeats(self.file)
+            instruments = musicfile.getinstruments()
             self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE
             self.arraySnare = instruments["Snare"] * 1000 + TIMEADVENCE
             self.arrayHihat = instruments["Hihat"] * 1000 + TIMEADVENCE
 
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
-
+            self.duration = musicfile.getduration() * 1000 #ms
+            self.gamescore = 0
+            self.time_start = pygame.time.get_ticks()
             self.arrayKick = self.arrayKick + pygame.time.get_ticks()
             self.arraySnare = self.arraySnare + pygame.time.get_ticks()
             self.arrayHihat = self.arrayHihat + pygame.time.get_ticks()
@@ -253,14 +264,14 @@ class GameEngine(object):
             self.listKick = self.arrayKick.tolist()
             self.listSnare = self.arraySnare.tolist()
             self.listHihat = self.arrayHihat.tolist()
-            self.gamescore = 0
+
 
 
 # State machine constants for the StateMachine class below
 STATE_MENU = 1
 STATE_LIBRARY = 2
 STATE_PLAY = 3
-
+STATE_ENDGAME = 4
 
 class StateMachine(object):
     """

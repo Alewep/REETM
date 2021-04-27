@@ -36,6 +36,14 @@ class AutomaticBeats(object) :
         duration = librosa.get_duration(y, sr)
         return tempo, duration, times[beats_plp]
 
+    def getduration(self):
+        file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
+        if os.path.exists(file):
+            y, sr = librosa.load(file)
+            return librosa.get_duration(y,sr)
+        else :
+            return None
+
 #returns a dictionnary instrument => array of floats
     def getinstruments(self):
         self.preprocess()

@@ -43,7 +43,8 @@ class Keyboard(object):
                         self.keydownplay(event)
                     if currentstate == model.STATE_LIBRARY:
                         self.keydownhelp(event)
-
+                    if currentstate == model.STATE_ENDGAME:
+                        self.keydownendgame(event)
     def keydownmenu(self, event):
         if view.view.BUTTONMENUPLAY.cliked(self.listEvent):
             self.evManager.Post(ButtonMenuPlayEvent())
@@ -65,3 +66,6 @@ class Keyboard(object):
 
     def keydownlibrary(self, event):
         pass
+    def keydownendgame(self,event):
+        if view.view.BUTTONMENURETURN.cliked(self.listEvent):
+            self.evManager.Post(ButtonMenuReturnEvent())
