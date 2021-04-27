@@ -237,7 +237,7 @@ class GameEngine(object):
                 if not self.passTimeMusic and pygame.time.get_ticks() >= TIMEADVENCE + self.time_start:
                     self.passTimeMusic = True
                     pygame.mixer.music.play()
-                if pygame.time.get_ticks() >= self.duration + self.time_start:
+                if pygame.time.get_ticks() >= self.duration + self.time_start + TIMEADVENCE:
                     self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
             else:
                 self.running = False
@@ -250,6 +250,7 @@ class GameEngine(object):
         elif self.state.peek() == STATE_ENDGAME:
             pass
         elif self.state.peek() == STATE_PLAY:
+            self.passTimeMusic = False
             musicfile = AutomaticBeats(self.file)
             instruments = musicfile.getinstruments()
             self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE

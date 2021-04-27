@@ -7,19 +7,20 @@ from model.model import *
 
 CHECKLIGNE = 150
 
-
-
 screen_height = 720
 screen_width = 1280
-
 
 BUTTONMENUPLAY = Button(600, 550, 191, 64,
                         image="tile000.png",
                         placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
 
 BUTTONMENURETURN = Button(600, 550, 191, 64,
-                        image="tile000.png",
-                        placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
+                          label="Continue",
+                          color=(255, 0, 0),
+                          colorLabel=(0, 0, 0),
+                          placeHolder=StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
+                                                  colorLabel=(255, 0, 0))
+                          )
 
 
 class GraphicalView(object):
@@ -56,6 +57,11 @@ class GraphicalView(object):
         self.e_pressed = False
 
     # add a hit to the screen
+    def resetInstrument(self):
+        self.kick_state = []
+        self.snare_state = []
+        self.hihat_state = []
+
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
         instrument.setDistanceInPixel(height - CHECKLIGNE)
@@ -135,6 +141,7 @@ class GraphicalView(object):
             if currentstate == model.STATE_LIBRARY:
                 self.renderlibrary()
             if currentstate == model.STATE_ENDGAME:
+                self.resetInstrument()
                 self.renderendgame()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
@@ -200,9 +207,9 @@ class GraphicalView(object):
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.imgMenu, (0, 0))
 
-        fontTitle = pygame.font.SysFont('arial',200)
+        fontTitle = pygame.font.SysFont('arial', 200)
 
-        title = fontTitle.render("Reetm", True, (133, 193, 233 ))
+        title = fontTitle.render("Reetm", True, (133, 193, 233))
         self.screen.blit(title, (400, 150))
 
         BUTTONMENUPLAY.draw(self.screen)
@@ -218,7 +225,7 @@ class GraphicalView(object):
 
         fontTitle = pygame.font.SysFont('arial', 100)
 
-        final_score = fontTitle.render("Score : "+str(self.model.gamescore) + "!", True, (133, 193, 233))
+        final_score = fontTitle.render("Score : " + str(self.model.gamescore) + "!", True, (133, 193, 233))
         self.screen.blit(final_score, (375, 300))
 
         BUTTONMENURETURN.draw(self.screen)
