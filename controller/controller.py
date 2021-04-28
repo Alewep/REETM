@@ -13,7 +13,7 @@ class Keyboard(object):
     Handles keyboard input.
     """
 
-    def __init__(self, evManager, model):
+    def __init__(self, evManager, model,view):
         """
         evManager (EventManager): Allows posting messages to the event queue.
         model (GameEngine): a strong reference to the game Model.
@@ -21,6 +21,7 @@ class Keyboard(object):
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.model = model
+        self.view = view
         self.listEvent = None
 
     def notify(self, event):
