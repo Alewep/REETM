@@ -1,8 +1,11 @@
 import pygame
 from event.eventmanager import *
 from beatTraitement.AutomaticBeats import AutomaticBeats
+from library import library
 import tkinter
 import tkinter.filedialog
+from tkinter.ttk import *
+from tkinter import *
 
 TIMEADVENCE = 2000  # time of advance in second
 
@@ -108,6 +111,33 @@ class Button(StyleButton):
             self.placeHolder.draw(screen)
         else:
             super().draw(screen)
+
+
+class ComboBox(object):
+
+    def __init__(self):
+        self.window = tkinter.Tk()
+
+        w = 225  # width for the Tk root
+        h = 300  # height for the Tk root
+        ws = self.window.winfo_screenwidth()  # width of the screen
+        hs = self.window.winfo_screenheight()  # height of the screen
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+
+        self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        Label(self.window, text="Choose a song to play !", foreground='black', font = ("Times New Roman", 15))
+        Label(self.window, text="Select a song :",
+                  font=("Times New Roman", 12)).grid(column=0,
+                                                     row=5, padx=35, pady=25)
+        self.songSelect = StringVar()
+        self.stockSongs = library.getFiles(r'./tests','.wav')
+        self.listeSongs = Combobox(self.window, textvariable=self.songSelect, values=self.stockSongs, state='readonly')
+        self.listeSongs.grid(padx=35)
+        self.listeSongs.bind('<<ComboboxSelected>>', self.songSelected)
+
+    def songSelected(self,event):
+        self.window.destroy()
 
 
 class GameEngine(object):
@@ -220,7 +250,7 @@ class GameEngine(object):
 
         self.running = True
         self.evManager.Post(InitializeEvent())
-        self.state.push(STATE_MENU)
+        self.state.push(STATE_LIBRARY)
         while self.running:
             newTick = TickEvent()
             self.evManager.Post(newTick)
@@ -259,7 +289,7 @@ class GameEngine(object):
 
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
-            self.duration = musicfile.getduration() * 1000 #ms
+            self.duration = musicfile.getduration() * 1000  # ms
             self.gamescore = 0
             self.time_start = pygame.time.get_ticks()
             self.arrayKick = self.arrayKick + pygame.time.get_ticks()
@@ -271,12 +301,12 @@ class GameEngine(object):
             self.listHihat = self.arrayHihat.tolist()
 
 
-
 # State machine constants for the StateMachine class below
 STATE_MENU = 1
 STATE_LIBRARY = 2
 STATE_PLAY = 3
 STATE_ENDGAME = 4
+
 
 class StateMachine(object):
     """

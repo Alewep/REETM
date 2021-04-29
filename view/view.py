@@ -216,7 +216,9 @@ class GraphicalView(object):
         pygame.display.flip()
 
     def renderlibrary(self):
-        pass
+        songs_list = model.ComboBox()
+        songs_list.window.mainloop()
+        songs_list.window.quit()
 
     def renderendgame(self):
 
