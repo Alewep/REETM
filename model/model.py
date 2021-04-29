@@ -11,7 +11,7 @@ TIMEADVENCE = 2000  # time of advance in second
 
 # constants used to determine the score
 
-delta_fail = 150  # ms
+delta_bad = 150  # ms
 delta_meh = 100  # ms
 delta_good = 50  # ms
 delta_excellent = 25  # ms
@@ -221,10 +221,11 @@ class GameEngine(object):
         if instrument_class == 2:
             work_list = self.arrayHihat
 
-        list_fail = work_list[(work_list > beat_time - delta_fail) & (work_list < beat_time + delta_fail)]
+
+        list_bad = work_list[(work_list > beat_time - delta_bad) & (work_list < beat_time + delta_bad)]
         success_class = 'fail'
         score_to_add = score_fail
-        if len(list_fail) > 0:
+        if len(list_bad) > 0:
             list_meh = work_list[(work_list > beat_time - delta_meh) & (work_list < beat_time + delta_meh)]
             success_class = 'bad'
             score_to_add = score_bad
