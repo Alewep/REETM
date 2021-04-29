@@ -1,6 +1,6 @@
 import pygame
 from mvc.eventmanager import *
-from AutomaticBeats import AutomaticBeats
+from addons.AutomaticBeats import AutomaticBeats
 
 import numpy as np
 
