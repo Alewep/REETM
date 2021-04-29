@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 import os
 from spleeter.separator import Separator
-from ADTLib import ADT
+from addons.ADTLib import ADT
 import csv
 
 # class regrouping the analysis functions
