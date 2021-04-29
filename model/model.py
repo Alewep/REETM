@@ -6,6 +6,7 @@ import tkinter
 import tkinter.filedialog
 from tkinter.ttk import *
 from tkinter import *
+import numpy as np
 
 TIMEADVENCE = 2000  # time of advance in second
 
@@ -221,6 +222,7 @@ class GameEngine(object):
         if instrument_class == 2:
             work_list = self.arrayHihat
 
+        beat_to_delete = None
 
         list_bad = work_list[(work_list > beat_time - delta_bad) & (work_list < beat_time + delta_bad)]
         success_class = 'fail'
@@ -229,20 +231,26 @@ class GameEngine(object):
             list_meh = work_list[(work_list > beat_time - delta_meh) & (work_list < beat_time + delta_meh)]
             success_class = 'bad'
             score_to_add = score_bad
+            beat_to_delete = list_bad[0]
             if len(list_meh) > 0:
                 list_good = work_list[(work_list > beat_time - delta_good) & (work_list < beat_time + delta_good)]
                 success_class = 'meh'
                 score_to_add = score_meh
+                beat_to_delete = list_meh[0]
                 if len(list_good) > 0:
                     list_excellent = work_list[
                         (work_list > beat_time - delta_excellent) & (work_list < beat_time + delta_excellent)]
                     success_class = 'good'
                     score_to_add = score_good
+                    beat_to_delete = list_good[0]
                     if len(list_excellent) > 0:
                         success_class = 'excellent'
                         score_to_add = score_excellent
+                        beat_to_delete = list_excellent[0]
 
         self.gamescore += score_to_add
+        if beat_to_delete is not None:
+            work_list = np.delete(work_list,np.where(work_list == beat_to_delete))
         # print("Succès :" + success_class)
         # print("Score actuel :" + str(self.gamescore))
         return success_class
@@ -251,7 +259,7 @@ class GameEngine(object):
 
         self.running = True
         self.evManager.Post(InitializeEvent())
-        self.state.push(STATE_LIBRARY)
+        self.state.push(STATE_MENU)
         while self.running:
             newTick = TickEvent()
             self.evManager.Post(newTick)
