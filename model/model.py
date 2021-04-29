@@ -1,29 +1,25 @@
 import pygame
 from event.eventmanager import *
 from beatTraitement.AutomaticBeats import AutomaticBeats
-from library import library
-import tkinter
-import tkinter.filedialog
-from tkinter.ttk import *
-from tkinter import *
+
 import numpy as np
 
 TIMEADVENCE = 2000  # time of advance in second
 
 # constants used to determine the score
 
-delta_bad = 150  # ms
-delta_meh = 100  # ms
-delta_good = 50  # ms
-delta_excellent = 25  # ms
+DELTA_BAD = 150  # ms
+DELTA_MEH = 100  # ms
+DELTA_GOOD = 50  # ms
+DELTA_EXCELLENT = 25  # ms
 
 # score depending on result
 
-score_fail = -0.5
-score_bad = 0.25
-score_meh = 0.5
-score_good = 0.75
-score_excellent = 1
+SCORE_FAIL = -0.5
+SCORE_BAD = 0.25
+SCORE_MEH = 0.5
+SCORE_GOOD = 0.75
+SCORE_EXCELLENT = 1
 
 
 class Beat(object):
@@ -114,33 +110,6 @@ class Button(StyleButton):
             super().draw(screen)
 
 
-class ComboBox(object):
-
-    def __init__(self):
-        self.window = tkinter.Tk()
-
-        w = 225  # width for the Tk root
-        h = 300  # height for the Tk root
-        ws = self.window.winfo_screenwidth()  # width of the screen
-        hs = self.window.winfo_screenheight()  # height of the screen
-        x = (ws / 2) - (w / 2)
-        y = (hs / 2) - (h / 2)
-
-        self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
-        Label(self.window, text="Choose a song to play !", foreground='black', font = ("Times New Roman", 15))
-        Label(self.window, text="Select a song :",
-                  font=("Times New Roman", 12)).grid(column=0,
-                                                     row=5, padx=35, pady=25)
-        self.songSelect = StringVar()
-        self.stockSongs = library.getFiles(r'./tests','.wav')
-        self.listeSongs = Combobox(self.window, textvariable=self.songSelect, values=self.stockSongs, state='readonly')
-        self.listeSongs.grid(padx=35)
-        self.listeSongs.bind('<<ComboboxSelected>>', self.songSelected)
-
-    def songSelected(self,event):
-        self.window.destroy()
-
-
 class GameEngine(object):
 
     def __init__(self, evManager):
@@ -156,6 +125,8 @@ class GameEngine(object):
         self.listSnare = None
         self.listHihat = None
 
+        self.gamescore = 0
+
         self.passTimeMusic = False
 
         # general
@@ -164,17 +135,7 @@ class GameEngine(object):
         self.running = False
         self.state = StateMachine()
 
-    def buttonPlay(self):
-        top = tkinter.Tk()
-        top.withdraw()  # hide window
-        self.file = tkinter.filedialog.askopenfilename(parent=top, title="Select a Music in wav format",
-                                                       filetypes=(("wav files",
-                                                                   "*.wav*"),
-                                                                  ("all files",
-                                                                   "*.*")))
-        top.destroy()
-        self.evManager.Post(StateChangeEvent(STATE_PLAY))
-        self.gamescore = 0
+
 
     def buttonReturn(self):
         self.evManager.Post(StateChangeEvent(STATE_MENU))
@@ -198,10 +159,11 @@ class GameEngine(object):
             if event.pressed:
                 newScoreEvent = ScoreEvent(self.inputVerifBeat(event.time, event.classe), self.gamescore)
                 self.evManager.Post(newScoreEvent)
-        if isinstance(event, ButtonMenuPlayEvent):
-            self.buttonPlay()
-        if isinstance(event, ButtonMenuReturnEvent):
-            self.buttonReturn()
+        if isinstance(event, FileChooseEvent):
+
+            self.file = event.file
+            self.evManager.Post(StateChangeEvent(STATE_PLAY))
+
 
     def instrumentNow(self, liste_beat, num_classe):
         if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
@@ -224,28 +186,28 @@ class GameEngine(object):
 
         beat_to_delete = None
 
-        list_bad = work_list[(work_list > beat_time - delta_bad) & (work_list < beat_time + delta_bad)]
+        list_bad = work_list[(work_list > beat_time - DELTA_BAD) & (work_list < beat_time + DELTA_BAD)]
         success_class = 'fail'
-        score_to_add = score_fail
+        score_to_add = SCORE_FAIL
         if len(list_bad) > 0:
-            list_meh = work_list[(work_list > beat_time - delta_meh) & (work_list < beat_time + delta_meh)]
+            list_meh = work_list[(work_list > beat_time - DELTA_MEH) & (work_list < beat_time + DELTA_MEH)]
             success_class = 'bad'
-            score_to_add = score_bad
+            score_to_add = SCORE_BAD
             beat_to_delete = list_bad[0]
             if len(list_meh) > 0:
-                list_good = work_list[(work_list > beat_time - delta_good) & (work_list < beat_time + delta_good)]
+                list_good = work_list[(work_list > beat_time - DELTA_GOOD) & (work_list < beat_time + DELTA_GOOD)]
                 success_class = 'meh'
-                score_to_add = score_meh
+                score_to_add = SCORE_MEH
                 beat_to_delete = list_meh[0]
                 if len(list_good) > 0:
                     list_excellent = work_list[
-                        (work_list > beat_time - delta_excellent) & (work_list < beat_time + delta_excellent)]
+                        (work_list > beat_time - DELTA_EXCELLENT) & (work_list < beat_time + DELTA_EXCELLENT)]
                     success_class = 'good'
-                    score_to_add = score_good
+                    score_to_add = SCORE_GOOD
                     beat_to_delete = list_good[0]
                     if len(list_excellent) > 0:
                         success_class = 'excellent'
-                        score_to_add = score_excellent
+                        score_to_add = SCORE_EXCELLENT
                         beat_to_delete = list_excellent[0]
 
         self.gamescore += score_to_add
@@ -269,6 +231,8 @@ class GameEngine(object):
                 pass
             elif self.state.peek() == STATE_ENDGAME:
                 pass
+            elif self.state.peek() == STATE_CHOOSEFILE :
+                pass
             elif self.state.peek() == STATE_PLAY and self.file is not None:
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
@@ -282,11 +246,14 @@ class GameEngine(object):
                 self.running = False
 
     def initialize(self):
+
         if self.state.peek() == STATE_MENU:
             pass
         elif self.state.peek() == STATE_LIBRARY:
             pass
         elif self.state.peek() == STATE_ENDGAME:
+            pass
+        elif self.state.peek() == STATE_CHOOSEFILE:
             pass
         elif self.state.peek() == STATE_PLAY:
             self.passTimeMusic = False
@@ -311,10 +278,14 @@ class GameEngine(object):
 
 
 # State machine constants for the StateMachine class below
+
+
+# State machine constants for the StateMachine class below
 STATE_MENU = 1
 STATE_LIBRARY = 2
 STATE_PLAY = 3
 STATE_ENDGAME = 4
+STATE_CHOOSEFILE = 5
 
 
 class StateMachine(object):

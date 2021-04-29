@@ -66,13 +66,20 @@ class ScoreEvent(Event):
         self.score = current_score
 
 
+class FileChooseEvent(Event):
+    def __init__(self, file):
+        self.file = file
+
+
 class ButtonMenuPlayEvent(Event):
     def __init__(self):
         self.name = "Button menu play event"
 
+
 class ButtonMenuReturnEvent(Event):
     def __init__(self):
         self.name = "Button menu return event"
+
 
 class InitializeEvent(Event):
     """

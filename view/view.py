@@ -1,26 +1,13 @@
 import pygame
-from event.eventmanager import *
-from model import model
-from moviepy.editor import *
 
+import model.model
 from model.model import *
-
+import tkinter
+import tkinter.filedialog
 CHECKLIGNE = 150
 
 screen_height = 720
 screen_width = 1280
-
-BUTTONMENUPLAY = Button(600, 550, 191, 64,
-                        image="tile000.png",
-                        placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
-
-BUTTONMENURETURN = Button(600, 550, 191, 64,
-                          label="Continue",
-                          color=(255, 0, 0),
-                          colorLabel=(0, 0, 0),
-                          placeHolder=StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
-                                                  colorLabel=(255, 0, 0))
-                          )
 
 
 class GraphicalView(object):
@@ -43,11 +30,14 @@ class GraphicalView(object):
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.model = model
+
         self.isinitialized = False
+
         self.screen = None
         self.clock = None
         self.imgMenu = None
         self.smallfont = None
+
         self.kick_state = []
         self.snare_state = []
         self.hihat_state = []
@@ -55,6 +45,10 @@ class GraphicalView(object):
         self.a_pressed = False
         self.z_pressed = False
         self.e_pressed = False
+
+        self.buttonMenuPlay = None
+        self.buttonMenuReturn = None
+        self.fileSelected = None
 
     # add a hit to the screen
     def resetInstrument(self):
@@ -78,8 +72,8 @@ class GraphicalView(object):
                 liste_instrument.pop(i)
 
     def isexcellent(self, beat):
-        return (beat.time < pygame.time.get_ticks() + model.delta_excellent) & (
-                beat.time > pygame.time.get_ticks() - model.delta_excellent)
+        return (beat.time < pygame.time.get_ticks() + DELTA_EXCELLENT) & (
+                beat.time > pygame.time.get_ticks() - DELTA_MEH)
 
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
@@ -134,15 +128,17 @@ class GraphicalView(object):
             pygame.quit()
         elif isinstance(event, TickEvent):
             currentstate = self.model.state.peek()
-            if currentstate == model.STATE_MENU:
+            if currentstate == STATE_MENU:
                 self.rendermenu()
-            if currentstate == model.STATE_PLAY:
+            if currentstate == STATE_PLAY:
                 self.renderplay()
-            if currentstate == model.STATE_LIBRARY:
+            if currentstate == STATE_LIBRARY:
                 self.renderlibrary()
-            if currentstate == model.STATE_ENDGAME:
+            if currentstate == STATE_ENDGAME:
                 self.resetInstrument()
                 self.renderendgame()
+            if currentstate == STATE_CHOOSEFILE:
+                self.renderChooseFile()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             if event.num == 0:
@@ -212,8 +208,19 @@ class GraphicalView(object):
         title = fontTitle.render("Reetm", True, (133, 193, 233))
         self.screen.blit(title, (400, 150))
 
-        BUTTONMENUPLAY.draw(self.screen)
+        self.buttonMenuPlay.draw(self.screen)
         pygame.display.flip()
+
+    def renderChooseFile(self):
+        top = tkinter.Tk()
+        top.withdraw()  # hide window
+        print('test')
+        self.fileSelected = tkinter.filedialog.askopenfilename(parent=top, title="Select a Music in wav format",
+                                                               filetypes=(("wav files",
+                                                                           "*.wav*"),
+                                                                          ("all files",
+                                                                           "*.*")))
+        top.destroy()
 
     def renderlibrary(self):
         songs_list = model.ComboBox()
@@ -230,7 +237,7 @@ class GraphicalView(object):
         final_score = fontTitle.render("Score : " + str(self.model.gamescore) + "!", True, (133, 193, 233))
         self.screen.blit(final_score, (375, 300))
 
-        BUTTONMENURETURN.draw(self.screen)
+        self.buttonMenuReturn.draw(self.screen)
         pygame.display.flip()
 
     def initialize(self):
@@ -242,6 +249,17 @@ class GraphicalView(object):
         pygame.display.set_caption('Reetm')
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
+        self.buttonMenuPlay = Button(600, 550, 191, 64,
+                                     image="tile000.png",
+                                     placeHolder=StyleButton(600, 550, 191, 64, image="tile002.png"))
+
+        self.buttonMenuReturn = Button(600, 550, 191, 64,
+                                       label="Continue",
+                                       color=(255, 0, 0),
+                                       colorLabel=(0, 0, 0),
+                                       placeHolder=StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
+                                                               colorLabel=(255, 0, 0))
+                                       )
         # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
         self.isinitialized = True
