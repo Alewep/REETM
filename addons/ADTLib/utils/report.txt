@@ -1,0 +1,54 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 1 files
+Detected 0 issues that require attention
+--------------------------------------------------------------------------------
+================================================================================
+Detailed log follows:
+
+================================================================================
+--------------------------------------------------------------------------------
+Processing file '__init__.py'
+ outputting to '__initv2__.py'
+--------------------------------------------------------------------------------
+
+251:14: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+268:41: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+271:43: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+273:53: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+273:145: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+276:44: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+278:46: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+282:49: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+283:52: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+285:55: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+286:58: INFO: Renamed 'tf.random_normal' to 'tf.random.normal'
+289:7: INFO: Renamed 'tf.reset_default_graph' to 'tf.compat.v1.reset_default_graph'
+291:19: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+292:19: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+295:25: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+299:38: INFO: Renamed 'tf.nn.dynamic_rnn' to 'tf.compat.v1.nn.dynamic_rnn'
+302:40: INFO: Added keywords to args of function 'tf.pad'
+310:16: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+311:42: INFO: Renamed 'tf.nn.bidirectional_dynamic_rnn' to 'tf.compat.v1.nn.bidirectional_dynamic_rnn'
+315:16: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+316:44: INFO: Renamed 'tf.nn.bidirectional_dynamic_rnn' to 'tf.compat.v1.nn.bidirectional_dynamic_rnn'
+325:36: INFO: Added keywords to args of function 'tf.pad'
+329:28: INFO: Added keywords to args of function 'tf.reduce_sum'
+333:23: INFO: Added keywords to args of function 'tf.reduce_mean'
+333:38: INFO: Changing labels arg of tf.nn.softmax_cross_entropy_with_logits to tf.stop_gradient(labels). Please check this transformation.
+
+336:23: INFO: Added keywords to args of function 'tf.reduce_mean'
+338:29: INFO: Renamed 'tf.train.GradientDescentOptimizer' to 'tf.compat.v1.train.GradientDescentOptimizer'
+340:29: INFO: Renamed 'tf.train.AdamOptimizer' to 'tf.compat.v1.train.AdamOptimizer'
+342:29: INFO: Renamed 'tf.train.RMSPropOptimizer' to 'tf.compat.v1.train.RMSPropOptimizer'
+343:36: INFO: Added keywords to args of function 'tf.argmax'
+343:60: INFO: Added keywords to args of function 'tf.argmax'
+344:23: INFO: Added keywords to args of function 'tf.reduce_mean'
+345:19: INFO: Renamed 'tf.global_variables_initializer' to 'tf.compat.v1.global_variables_initializer'
+346:20: INFO: Renamed 'tf.train.Saver' to 'tf.compat.v1.train.Saver'
+347:24: INFO: Renamed 'tf.train.Saver' to 'tf.compat.v1.train.Saver'
+347:39: INFO: Renamed 'tf.trainable_variables' to 'tf.compat.v1.trainable_variables'
+363:14: INFO: Renamed 'tf.Session' to 'tf.compat.v1.Session'
+--------------------------------------------------------------------------------
+
