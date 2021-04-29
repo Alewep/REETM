@@ -1,9 +1,4 @@
-from event import eventmanager
-from model import model
-from view import view
-from controller import controller
-import pygame
-
+from mvc import model, controller, view, eventmanager
 
 
 def run():
