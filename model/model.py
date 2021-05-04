@@ -171,7 +171,7 @@ class GameEngine(object):
 
     # Mp4 file format to wav file format
     def mp4ToWav(self, yt):
-        command = "ffmpeg -y -i \"song/" + yt.title + "/" + yt.title + ".mp4\" -ab 160k -ac 2 -ar 44100 -vn \"song/" + yt.title + "/song.wav\""
+        command = "ffmpeg -y -i \"song/" + yt.title + "/" + yt.title + ".mp4\" -ab 160k -ac 2 -ar 44100 -vn \"song/" + yt.title + "/"+ yt.title+ ".wav\""
         subprocess.call(command, shell=True)
 
     # fait tout à partir du link (nom de méthode à modifier)
