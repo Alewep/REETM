@@ -15,7 +15,7 @@ use bash script install.sh : ```bash ./install.sh```
 or 
 
 ```
-conda env remove -n envReetm > /dev/null
+conda env remove -n envReetm
 conda env create -f reetmEnv.yml
 ```
 
