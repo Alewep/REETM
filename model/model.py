@@ -192,7 +192,7 @@ class GameEngine(object):
         self.DL_mp4(yt)
         self.DL_mp4_nosound(yt)
         self.mp4ToWav(yt)
-        self.file = "song/" + yt.title + "/" + "song.wav"
+        self.file = "song/" + yt.title + "/" + yt.title + ".wav"
         self.evManager.Post(StateChangeEvent(STATE_PLAY))
         self.gamescore = 0
 

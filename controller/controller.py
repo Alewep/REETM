@@ -57,12 +57,13 @@ class Keyboard(object):
             if event.key == pygame.K_BACKSPACE:
                 view.view.BUTTONMENULINKYOUTUBE.text_backspace()
             else:
-                if event.key == pygame.K_LCTRL:
+                if pygame.key.get_pressed()[pygame.K_LCTRL] and pygame.key.get_pressed()[pygame.K_v]:
                     view.view.BUTTONMENULINKYOUTUBE.text_typing(pyperclip.paste())
-                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                    self.model.process(view.view.BUTTONMENULINKYOUTUBE.getText())
                 else:
-                    view.view.BUTTONMENULINKYOUTUBE.text_typing(event.unicode)
+                    if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                        self.model.process(view.view.BUTTONMENULINKYOUTUBE.getText())
+                    else:
+                        view.view.BUTTONMENULINKYOUTUBE.text_typing(event.unicode)
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
