@@ -141,9 +141,12 @@ class ComboBox(object):
         self.buttonconfirm.pack()
         self.buttonconfirm.config(command = self.confirmation)
         self.clicked = False
+        self.chosenfile = None
 
     def confirmation(self):
+        self.chosenfile = self.listeSongs.get()
         self.clicked = True
+        self.window.destroy()
 
 class GameEngine(object):
 
@@ -190,6 +193,7 @@ class GameEngine(object):
             if event.pressed:
                 newScoreEvent = ScoreEvent(self.inputVerifBeat(event.time, event.classe), self.gamescore)
                 self.evManager.Post(newScoreEvent)
+
         if isinstance(event, FileChooseListEvent):
             self.file = None
             self.musicnamelist = event.file
@@ -267,7 +271,7 @@ class GameEngine(object):
                 pass
             elif self.state.peek() == STATE_CHOOSEFILE:
                 pass
-            elif self.state.peek() == STATE_PLAY and self.file is not None:
+            elif self.state.peek() == STATE_PLAY:
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
                 self.instrumentNow(self.listHihat, 2)
@@ -313,7 +317,8 @@ class GameEngine(object):
 
             if self.musicnamelist is not None:
                 self.passTimeMusic = False
-                musicfile = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
+                musicfilepath = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
+                musicfile = AutomaticBeats(musicfilepath)
                 instruments = "preprocessed/"+self.musicnamelist+"/instruments.csv"
                 dict = addons.library.csv_to_dict(instruments)
                 self.arrayKick = dict["Kick"] * 1000 + TIMEADVENCE
@@ -321,7 +326,7 @@ class GameEngine(object):
                 self.arrayHihat = dict["Hihat"] * 1000 + TIMEADVENCE
 
                 pygame.mixer.init()
-                pygame.mixer.music.load(musicfile)
+                pygame.mixer.music.load(musicfilepath)
                 self.duration = musicfile.getduration() * 1000  # ms
                 self.gamescore = 0
                 self.time_start = pygame.time.get_ticks()

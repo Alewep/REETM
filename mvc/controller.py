@@ -78,8 +78,9 @@ class Keyboard(object):
 
     def keydownlibrary(self, event):
         if self.view.songs_list.clicked:
-            if not self.view.songs_list.listeSongs.get() == '':
-                self.evManager.Post(FileChooseListEvent(self.view.songs_list.listeSongs.get()))
+            print("clicked")
+            if not self.view.songs_list.chosenfile == '':
+                self.evManager.Post(FileChooseListEvent(self.view.songs_list.chosenfile))
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
