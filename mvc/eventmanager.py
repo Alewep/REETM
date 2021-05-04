@@ -71,6 +71,10 @@ class FileChooseEvent(Event):
         self.file = file
 
 
+class FileChooseListEvent(Event):
+    def __init__(self, file):
+        self.file = file
+
 class ButtonMenuPlayEvent(Event):
     def __init__(self):
         self.name = "Button menu play event"

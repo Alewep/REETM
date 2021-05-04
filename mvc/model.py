@@ -1,7 +1,12 @@
+import tkinter
+
 import pygame
+
+import addons.library
 from mvc.eventmanager import *
 from addons.AutomaticBeats import AutomaticBeats
-
+from tkinter import *
+from tkinter.ttk import *
 import numpy as np
 
 TIMEADVENCE = 2000  # time of advance in second
@@ -110,6 +115,36 @@ class Button(StyleButton):
             super().draw(screen)
 
 
+class ComboBox(object):
+
+    def __init__(self):
+        self.window = Tk()  # create a Tk root window
+
+        w = 300  # width for the Tk root
+        h = 400  # height for the Tk root
+
+        # get screen width and height
+        ws = self.window.winfo_screenwidth()  # width of the screen
+        hs = self.window.winfo_screenheight()  # height of the screen
+
+        # calculate x and y coordinates for the Tk root window
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+
+        # set the dimensions of the screen
+        # and where it is placed
+        self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        self.stockSongs = addons.library.getFiles('preprocessed')
+        self.listeSongs = Combobox(self.window, values = self.stockSongs, state='readonly')
+        self.listeSongs.pack()
+        self.buttonconfirm = tkinter.Button(text = "confirmation")
+        self.buttonconfirm.pack()
+        self.buttonconfirm.config(command = self.confirmation)
+        self.clicked = False
+
+    def confirmation(self):
+        self.clicked = True
+
 class GameEngine(object):
 
     def __init__(self, evManager):
@@ -129,17 +164,13 @@ class GameEngine(object):
 
         self.passTimeMusic = False
 
+        self.musicnamelist = None
+
         # general
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.running = False
         self.state = StateMachine()
-
-
-
-    def buttonReturn(self):
-        self.evManager.Post(StateChangeEvent(STATE_MENU))
-        self.gamescore = 0
 
     def notify(self, event):
 
@@ -159,11 +190,14 @@ class GameEngine(object):
             if event.pressed:
                 newScoreEvent = ScoreEvent(self.inputVerifBeat(event.time, event.classe), self.gamescore)
                 self.evManager.Post(newScoreEvent)
-        if isinstance(event, FileChooseEvent):
-
-            self.file = event.file
+        if isinstance(event, FileChooseListEvent):
+            self.file = None
+            self.musicnamelist = event.file
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
+        if isinstance(event, FileChooseEvent):
+            self.file = event.file
+            self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
     def instrumentNow(self, liste_beat, num_classe):
         if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
@@ -212,7 +246,7 @@ class GameEngine(object):
 
         self.gamescore += score_to_add
         if beat_to_delete is not None:
-            work_list = np.delete(work_list,np.where(work_list == beat_to_delete))
+            work_list = np.delete(work_list, np.where(work_list == beat_to_delete))
         # print("Succès :" + success_class)
         # print("Score actuel :" + str(self.gamescore))
         return success_class
@@ -231,7 +265,7 @@ class GameEngine(object):
                 pass
             elif self.state.peek() == STATE_ENDGAME:
                 pass
-            elif self.state.peek() == STATE_CHOOSEFILE :
+            elif self.state.peek() == STATE_CHOOSEFILE:
                 pass
             elif self.state.peek() == STATE_PLAY and self.file is not None:
                 self.instrumentNow(self.listKick, 0)
@@ -256,28 +290,47 @@ class GameEngine(object):
         elif self.state.peek() == STATE_CHOOSEFILE:
             pass
         elif self.state.peek() == STATE_PLAY:
-            self.passTimeMusic = False
-            musicfile = AutomaticBeats(self.file)
-            instruments = musicfile.getinstruments()
-            self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE
-            self.arraySnare = instruments["Snare"] * 1000 + TIMEADVENCE
-            self.arrayHihat = instruments["Hihat"] * 1000 + TIMEADVENCE
+            if self.file is not None:
+                self.passTimeMusic = False
+                musicfile = AutomaticBeats(self.file)
+                instruments = musicfile.getinstruments()
+                self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE
+                self.arraySnare = instruments["Snare"] * 1000 + TIMEADVENCE
+                self.arrayHihat = instruments["Hihat"] * 1000 + TIMEADVENCE
 
-            pygame.mixer.init()
-            pygame.mixer.music.load(self.file)
-            self.duration = musicfile.getduration() * 1000  # ms
-            self.gamescore = 0
-            self.time_start = pygame.time.get_ticks()
-            self.arrayKick = self.arrayKick + pygame.time.get_ticks()
-            self.arraySnare = self.arraySnare + pygame.time.get_ticks()
-            self.arrayHihat = self.arrayHihat + pygame.time.get_ticks()
+                pygame.mixer.init()
+                pygame.mixer.music.load(self.file)
+                self.duration = musicfile.getduration() * 1000  # ms
+                self.gamescore = 0
+                self.time_start = pygame.time.get_ticks()
+                self.arrayKick = self.arrayKick + pygame.time.get_ticks()
+                self.arraySnare = self.arraySnare + pygame.time.get_ticks()
+                self.arrayHihat = self.arrayHihat + pygame.time.get_ticks()
 
-            self.listKick = self.arrayKick.tolist()
-            self.listSnare = self.arraySnare.tolist()
-            self.listHihat = self.arrayHihat.tolist()
+                self.listKick = self.arrayKick.tolist()
+                self.listSnare = self.arraySnare.tolist()
+                self.listHihat = self.arrayHihat.tolist()
 
+            if self.musicnamelist is not None:
+                self.passTimeMusic = False
+                musicfile = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
+                instruments = "preprocessed/"+self.musicnamelist+"/instruments.csv"
+                dict = addons.library.csv_to_dict(instruments)
+                self.arrayKick = dict["Kick"] * 1000 + TIMEADVENCE
+                self.arraySnare = dict["Snare"] * 1000 + TIMEADVENCE
+                self.arrayHihat = dict["Hihat"] * 1000 + TIMEADVENCE
 
-# State machine constants for the StateMachine class below
+                pygame.mixer.init()
+                pygame.mixer.music.load(musicfile)
+                self.duration = musicfile.getduration() * 1000  # ms
+                self.gamescore = 0
+                self.time_start = pygame.time.get_ticks()
+                self.arrayKick = self.arrayKick + pygame.time.get_ticks()
+                self.arraySnare = self.arraySnare + pygame.time.get_ticks()
+                self.arrayHihat = self.arrayHihat + pygame.time.get_ticks()
+                self.listKick = self.arrayKick.tolist()
+                self.listSnare = self.arraySnare.tolist()
+                self.listHihat = self.arrayHihat.tolist()
 
 
 # State machine constants for the StateMachine class below

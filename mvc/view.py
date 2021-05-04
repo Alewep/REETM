@@ -47,6 +47,7 @@ class GraphicalView(object):
         self.buttonMenuPlay = None
         self.buttonMenuReturn = None
         self.fileSelected = None
+        self.songs_list = None
 
     # add a hit to the screen
     def resetInstrument(self):
@@ -207,12 +208,12 @@ class GraphicalView(object):
         self.screen.blit(title, (400, 150))
 
         self.buttonMenuPlay.draw(self.screen)
+        self.buttonLibrary.draw(self.screen)
         pygame.display.flip()
 
     def renderChooseFile(self):
         top = tkinter.Tk()
         top.withdraw()  # hide window
-        print('test')
         self.fileSelected = tkinter.filedialog.askopenfilename(parent=top, title="Select a Music in wav format",
                                                                filetypes=(("wav files",
                                                                            "*.wav*"),
@@ -221,9 +222,8 @@ class GraphicalView(object):
         top.destroy()
 
     def renderlibrary(self):
-        songs_list = model.ComboBox()
-        songs_list.window.mainloop()
-        songs_list.window.quit()
+        self.songs_list = model.ComboBox()
+        self.songs_list.window.mainloop()
 
     def renderendgame(self):
 
@@ -258,6 +258,15 @@ class GraphicalView(object):
                                        placeHolder=StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
                                                                colorLabel=(255, 0, 0))
                                        )
+
+        self.buttonLibrary = Button(500, 550, 191, 64,
+                                       label="Library",
+                                       color=(255, 0, 0),
+                                       colorLabel=(0, 0, 0),
+                                       placeHolder=StyleButton(500, 550, 191, 64, label="Library", color=(0, 0, 0),
+                                                               colorLabel=(255, 0, 0))
+                                       )
+
         # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
         self.isinitialized = True

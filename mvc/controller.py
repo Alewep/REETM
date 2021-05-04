@@ -42,7 +42,7 @@ class Keyboard(object):
                     if currentstate == model.STATE_PLAY:
                         self.keydownplay(event)
                     if currentstate == model.STATE_LIBRARY:
-                        self.keydownhelp(event)
+                        self.keydownlibrary(event)
                     if currentstate == model.STATE_ENDGAME:
                         self.keydownendgame(event)
                     if currentstate == model.STATE_CHOOSEFILE:
@@ -51,6 +51,8 @@ class Keyboard(object):
     def keydownmenu(self, event):
         if self.view.buttonMenuPlay.cliked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_CHOOSEFILE))
+        if self.view.buttonLibrary.cliked(self.listEvent):
+            self.evManager.Post(StateChangeEvent(model.STATE_LIBRARY))
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
@@ -74,9 +76,12 @@ class Keyboard(object):
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
-
     def keydownlibrary(self, event):
-        pass
+        if self.view.songs_list.clicked:
+            if not self.view.songs_list.listeSongs.get() == '':
+                self.evManager.Post(FileChooseListEvent(self.view.songs_list.listeSongs.get()))
+            else:
+                self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
     def keydownendgame(self, event):
         if self.view.buttonMenuReturn.cliked(self.listEvent):
