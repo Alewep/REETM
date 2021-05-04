@@ -65,7 +65,6 @@ class ScoreEvent(Event):
         self.type_success = type_success
         self.score = current_score
 
-
 class ButtonMenuPlayEvent(Event):
     def __init__(self):
         self.name = "Button menu play event"
@@ -74,6 +73,11 @@ class ButtonMenuReturnEvent(Event):
     def __init__(self):
         self.name = "Button menu return event"
 
+"""
+class ButtonMenuLinkYouTube(Event):
+    def __init__(self):
+        self.name = "Button menu link youtube"
+"""
 class InitializeEvent(Event):
     """
     Tells all listeners to initialize themselves.

@@ -3,6 +3,7 @@ import pygame
 import view.view
 from event.eventmanager import *
 from model import model
+import pyperclip
 
 # keys used ingame
 KeysList = [pygame.K_a, pygame.K_z, pygame.K_e]
@@ -28,7 +29,6 @@ class Keyboard(object):
         """
         Receive events posted to the message queue. 
         """
-
         if isinstance(event, TickEvent):
             # Called for each game tick. We check our keyboard presses here.
             self.listEvent = pygame.event.get()
@@ -39,6 +39,7 @@ class Keyboard(object):
                 else:
                     currentstate = self.model.state.peek()
                     if currentstate == model.STATE_MENU:
+                        self.keydownlinkyoutube(event)
                         self.keydownmenu(event)
                     if currentstate == model.STATE_PLAY:
                         self.keydownplay(event)
@@ -46,9 +47,22 @@ class Keyboard(object):
                         self.keydownhelp(event)
                     if currentstate == model.STATE_ENDGAME:
                         self.keydownendgame(event)
+
     def keydownmenu(self, event):
         if view.view.BUTTONMENUPLAY.cliked(self.listEvent):
             self.evManager.Post(ButtonMenuPlayEvent())
+
+    def keydownlinkyoutube(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                view.view.BUTTONMENULINKYOUTUBE.text_backspace()
+            else:
+                if event.key == pygame.K_LCTRL:
+                    view.view.BUTTONMENULINKYOUTUBE.text_typing(pyperclip.paste())
+                if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                    self.model.process(view.view.BUTTONMENULINKYOUTUBE.getText())
+                else:
+                    view.view.BUTTONMENULINKYOUTUBE.text_typing(event.unicode)
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
@@ -64,6 +78,7 @@ class Keyboard(object):
             if event.key in KeysList:
                 newInputEvent = InputEvent(KeysList.index(event.key), False)
                 self.evManager.Post(newInputEvent)
+
 
     def keydownlibrary(self, event):
         pass

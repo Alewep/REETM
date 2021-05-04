@@ -22,6 +22,7 @@ BUTTONMENURETURN = Button(600, 550, 191, 64,
                                                   colorLabel=(255, 0, 0))
                           )
 
+BUTTONMENULINKYOUTUBE = Textbox(300, 450, 500, 30)
 
 class GraphicalView(object):
     """
@@ -125,7 +126,6 @@ class GraphicalView(object):
         """
         Receive events posted to the message queue. 
         """
-
         if isinstance(event, InitializeEvent):
             self.initialize()
         elif isinstance(event, QuitEvent):
@@ -213,6 +213,7 @@ class GraphicalView(object):
         self.screen.blit(title, (400, 150))
 
         BUTTONMENUPLAY.draw(self.screen)
+        BUTTONMENULINKYOUTUBE.draw(self.screen)
         pygame.display.flip()
 
     def renderlibrary(self):
