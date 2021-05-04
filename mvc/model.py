@@ -8,7 +8,7 @@ from addons.AutomaticBeats import AutomaticBeats
 from tkinter import *
 from tkinter.ttk import *
 import numpy as np
-
+import os
 TIMEADVENCE = 2000  # time of advance in second
 
 # constants used to determine the score
@@ -251,9 +251,18 @@ class GameEngine(object):
         self.gamescore += score_to_add
         if beat_to_delete is not None:
             work_list = np.delete(work_list, np.where(work_list == beat_to_delete))
-        # print("Succès :" + success_class)
-        # print("Score actuel :" + str(self.gamescore))
         return success_class
+
+    def savebestscore(self):
+        musicfile = AutomaticBeats(self.file)
+        bestscorefilepath = "preprocessed/"+musicfile.getmusicname()+"/bestscore.csv"
+        if not os.path.exists(bestscorefilepath):
+            np.savetxt(bestscorefilepath, np.array([self.gamescore]))
+        else:
+            saved_score = np.loadtxt(bestscorefilepath)
+            if self.gamescore > saved_score:
+                np.savetxt(bestscorefilepath, np.array([self.gamescore]))
+
 
     def run(self):
 
@@ -268,7 +277,7 @@ class GameEngine(object):
             elif self.state.peek() == STATE_LIBRARY:
                 pass
             elif self.state.peek() == STATE_ENDGAME:
-                pass
+                self.savebestscore()
             elif self.state.peek() == STATE_CHOOSEFILE:
                 pass
             elif self.state.peek() == STATE_PLAY:
@@ -317,16 +326,16 @@ class GameEngine(object):
 
             if self.musicnamelist is not None:
                 self.passTimeMusic = False
-                musicfilepath = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
-                musicfile = AutomaticBeats(musicfilepath)
-                instruments = "preprocessed/"+self.musicnamelist+"/instruments.csv"
+                self.file = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
+                musicfile = AutomaticBeats(self.file)
+                instruments = "preprocessed/"+self.musicnamelist+"/instruments.json"
                 dict = addons.library.csv_to_dict(instruments)
                 self.arrayKick = dict["Kick"] * 1000 + TIMEADVENCE
                 self.arraySnare = dict["Snare"] * 1000 + TIMEADVENCE
                 self.arrayHihat = dict["Hihat"] * 1000 + TIMEADVENCE
 
                 pygame.mixer.init()
-                pygame.mixer.music.load(musicfilepath)
+                pygame.mixer.music.load(self.file)
                 self.duration = musicfile.getduration() * 1000  # ms
                 self.gamescore = 0
                 self.time_start = pygame.time.get_ticks()

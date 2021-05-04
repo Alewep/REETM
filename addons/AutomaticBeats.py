@@ -3,7 +3,14 @@ import librosa
 import os
 from spleeter.separator import Separator
 from addons.ADTLib import ADT
-import csv
+import json
+from json import JSONEncoder
+
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
 
 # class regrouping the analysis functions
 
@@ -49,8 +56,6 @@ class AutomaticBeats(object) :
         self.preprocess()
         file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
         drum_onsets = ADT([file])[0]
-        with open('preprocessed/'+self.getmusicname()+'/instruments.csv', 'w') as f:
-            writer = csv.writer(f)
-            for k, v in drum_onsets.items():
-                writer.writerow([k, v])
+        with open('preprocessed/'+self.getmusicname()+'/instruments.json', 'w') as outfile:
+            json.dump(drum_onsets,outfile, cls=NumpyArrayEncoder)
         return drum_onsets

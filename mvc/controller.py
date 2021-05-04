@@ -78,7 +78,6 @@ class Keyboard(object):
 
     def keydownlibrary(self, event):
         if self.view.songs_list.clicked:
-            print("clicked")
             if not self.view.songs_list.chosenfile == '':
                 self.evManager.Post(FileChooseListEvent(self.view.songs_list.chosenfile))
             else:
