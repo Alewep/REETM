@@ -229,6 +229,7 @@ class GraphicalView(object):
 
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.imgMenu, (0, 0))
+        self.message = None
 
         fontTitle = pygame.font.SysFont('arial', 100)
 
