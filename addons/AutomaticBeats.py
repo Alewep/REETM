@@ -5,6 +5,7 @@ from spleeter.separator import Separator
 from addons.ADTLib import ADT
 import json
 from json import JSONEncoder
+import shutil
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -18,6 +19,8 @@ class AutomaticBeats(object) :
 
     def __init__(self, filepath):
         self.file = filepath
+        self.instruments_dictionary = None
+
 #creates preprocessed/music_name/drums.wav
     def preprocess(self):
         separator = Separator('spleeter:4stems')
@@ -53,9 +56,17 @@ class AutomaticBeats(object) :
 
 #returns a dictionnary instrument => array of floats
     def getinstruments(self):
-        self.preprocess()
-        file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
-        drum_onsets = ADT([file])[0]
+        if self.instruments_dictionary is None:
+            self.preprocess()
+            file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
+            self.instruments_dictionary = ADT([file])[0]
+        return self.instruments_dictionary
+
+    def savejson(self):
         with open('preprocessed/'+self.getmusicname()+'/instruments.json', 'w') as outfile:
-            json.dump(drum_onsets,outfile, cls=NumpyArrayEncoder)
-        return drum_onsets
+            json.dump(self.instruments_dictionary,outfile, cls=NumpyArrayEncoder)
+
+    def copy(self):
+        src = self.file
+        dest = "preprocessed/" + self.getmusicname() +"/" + self.getmusicname()+".wav"
+        shutil.copyfile(src, dest)

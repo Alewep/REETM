@@ -257,11 +257,13 @@ class GameEngine(object):
         musicfile = AutomaticBeats(self.file)
         bestscorefilepath = "preprocessed/"+musicfile.getmusicname()+"/bestscore.csv"
         if not os.path.exists(bestscorefilepath):
-            np.savetxt(bestscorefilepath, np.array([self.gamescore]))
+            array_score = np.around(np.array([self.gamescore]),decimals=2)
+            np.savetxt(bestscorefilepath, array_score)
         else:
             saved_score = np.loadtxt(bestscorefilepath)
             if self.gamescore > saved_score:
-                np.savetxt(bestscorefilepath, np.array([self.gamescore]))
+                array_score = np.around(np.array([self.gamescore]),decimals=2)
+                np.savetxt(bestscorefilepath, array_score)
 
 
     def run(self):
@@ -307,6 +309,9 @@ class GameEngine(object):
                 self.passTimeMusic = False
                 musicfile = AutomaticBeats(self.file)
                 instruments = musicfile.getinstruments()
+                musicfile.savejson()
+                musicfile.copy()
+
                 self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE
                 self.arraySnare = instruments["Snare"] * 1000 + TIMEADVENCE
                 self.arrayHihat = instruments["Hihat"] * 1000 + TIMEADVENCE
@@ -329,7 +334,7 @@ class GameEngine(object):
                 self.file = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
                 musicfile = AutomaticBeats(self.file)
                 instruments = "preprocessed/"+self.musicnamelist+"/instruments.json"
-                dict = addons.library.csv_to_dict(instruments)
+                dict = addons.library.json_to_dict(instruments)
                 self.arrayKick = dict["Kick"] * 1000 + TIMEADVENCE
                 self.arraySnare = dict["Snare"] * 1000 + TIMEADVENCE
                 self.arrayHihat = dict["Hihat"] * 1000 + TIMEADVENCE

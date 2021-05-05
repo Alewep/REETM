@@ -1,7 +1,6 @@
 import os
 from os import listdir
 import json
-import csv
 import numpy as np
 
 def getfilename(file):
@@ -14,7 +13,7 @@ def getFiles(directory,fileExt):
 def getFiles(directory):
     return listdir(directory)
 
-def csv_to_dict(filename):
+def json_to_dict(filename):
     with open(filename) as json_file:
         data = json.load(json_file)
     for key in data.keys():
