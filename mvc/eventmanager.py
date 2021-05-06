@@ -57,9 +57,12 @@ class InputEvent(Event):
         self.time = pygame.time.get_ticks()
         self.pressed = pressed
 
+class newBestScoreEvent(Event):
+    def __init__(self, score):
+        self.name = "Score event"
+        self.newbestscore = score
 
 class ScoreEvent(Event):
-
     def __init__(self, type_success, current_score):
         self.name = "Score event"
         self.type_success = type_success

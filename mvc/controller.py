@@ -82,6 +82,9 @@ class Keyboard(object):
                 self.evManager.Post(FileChooseListEvent(self.view.songs_list.chosenfile))
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
+        if self.view.songs_list.clikedquit:
+            self.evManager.Post(StateChangeEvent(model.STATE_MENU))
+
 
     def keydownendgame(self, event):
         if self.view.buttonMenuReturn.cliked(self.listEvent):

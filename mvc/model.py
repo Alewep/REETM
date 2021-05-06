@@ -141,12 +141,23 @@ class ComboBox(object):
         self.buttonconfirm.pack()
         self.buttonconfirm.config(command = self.confirmation)
         self.clicked = False
+        self.clikedquit = False
         self.chosenfile = None
+
+        self.window.protocol('WM_DELETE_WINDOW', self.quit)  # root is your root window
+
+    def quit(self):
+        self.window.destroy()
+        self.clikedquit = True
+
 
     def confirmation(self):
         self.chosenfile = self.listeSongs.get()
         self.clicked = True
         self.window.destroy()
+
+
+
 
 class GameEngine(object):
 
@@ -259,11 +270,13 @@ class GameEngine(object):
         if not os.path.exists(bestscorefilepath):
             array_score = np.around(np.array([self.gamescore]),decimals=2)
             np.savetxt(bestscorefilepath, array_score)
+            self.evManager.Post(newBestScoreEvent(self.gamescore))
         else:
             saved_score = np.loadtxt(bestscorefilepath)
             if self.gamescore > saved_score:
                 array_score = np.around(np.array([self.gamescore]),decimals=2)
                 np.savetxt(bestscorefilepath, array_score)
+                self.evManager.Post(newBestScoreEvent(self.gamescore))
 
 
     def run(self):

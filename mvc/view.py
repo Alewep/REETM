@@ -1,3 +1,5 @@
+import tkinter.messagebox
+
 from mvc import model
 from mvc.model import *
 import tkinter
@@ -155,6 +157,8 @@ class GraphicalView(object):
                 self.z_pressed = event.pressed
             if event.classe == 2:
                 self.e_pressed = event.pressed
+        elif isinstance(event,newBestScoreEvent):
+            self.rendernewbestscore(event.newbestscore)
 
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
@@ -205,7 +209,7 @@ class GraphicalView(object):
         fontTitle = pygame.font.SysFont('arial', 200)
 
         title = fontTitle.render("Reetm", True, (133, 193, 233))
-        self.screen.blit(title, (400, 150))
+        self.screen.blit(title, (350, 230))
 
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
@@ -225,6 +229,7 @@ class GraphicalView(object):
         self.songs_list = model.ComboBox()
         self.songs_list.window.mainloop()
 
+
     def renderendgame(self):
 
         self.screen.fill((0, 0, 0))
@@ -239,6 +244,18 @@ class GraphicalView(object):
         self.buttonMenuReturn.draw(self.screen)
         pygame.display.flip()
 
+    def rendernewbestscore(self, score):
+        window = tkinter.Tk()
+        w = 300  # width for the Tk root
+        h = 400
+        ws = window.winfo_screenwidth()  # width of the screen
+        hs = window.winfo_screenheight()
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+        window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        window.withdraw()
+        infobox = tkinter.messagebox.showinfo(parent=window, title="Congrats !", message="New best score : " + str(score) +" !")
+        window.destroy()
     def initialize(self):
         """
         Set up the pygame graphical display and loads graphical resources.
