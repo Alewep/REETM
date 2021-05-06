@@ -11,7 +11,7 @@ import madmom
 import numpy as np
 import subprocess
 from fpdf import FPDF
-import ADTLib
+import addons.ADTLib as ADTLib
 import tensorflow as tf
 import tensorflow.compat.v1.nn.rnn_cell as rnn
 
