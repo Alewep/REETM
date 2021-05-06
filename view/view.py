@@ -22,7 +22,16 @@ BUTTONMENURETURN = Button(600, 550, 191, 64,
                                                   colorLabel=(255, 0, 0))
                           )
 
-BUTTONMENULINKYOUTUBE = Textbox(300, 450, 500, 30)
+YOUTUBELINKTEXTBOX = Textbox(300, 450, 500, 30)
+
+BUTTONYOUTUBELINK = Button(450, 830, 115, 30,
+                        image="DownloadButton.jpg",
+                        placeHolder=StyleButton(450, 830, 115, 30, image="DownloadButtonSelect.jpg"))
+
+BUTTONRESET = Button(450, 956, 115, 30,
+                        image="ClearButton.jpg",
+                        placeHolder=StyleButton(450, 956, 115, 30, image="ClearButtonSelect.jpg"))
+
 
 class GraphicalView(object):
     """
@@ -210,10 +219,12 @@ class GraphicalView(object):
         fontTitle = pygame.font.SysFont('arial', 200)
 
         title = fontTitle.render("Reetm", True, (133, 193, 233))
-        self.screen.blit(title, (400, 150))
+        self.screen.blit(title, (360, 150))
 
         BUTTONMENUPLAY.draw(self.screen)
-        BUTTONMENULINKYOUTUBE.draw(self.screen)
+        YOUTUBELINKTEXTBOX.draw(self.screen)
+        BUTTONYOUTUBELINK.draw(self.screen)
+        BUTTONRESET.draw(self.screen)
         pygame.display.flip()
 
     def renderlibrary(self):

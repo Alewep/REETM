@@ -123,17 +123,36 @@ class Textbox():
         self.fontLabel = fontLabel
         self.text = ''
         self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+        self.target = 0
+
     def text_typing(self, add):
         self.text += add
         self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+
     def text_backspace(self):
         self.text = self.text[:-1]
+        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+    def reset(self):
+        self.text = ''
         self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
     def draw(self, screen):
         pygame.draw.rect(screen,"red",pygame.Rect(self.x, self.y, self.width, self.height),2)
         screen.blit(self.text_surface, (self.x, self.y))
+
     def getText(self):
         return self.text
+
+    def _surface(self):
+        return pygame.Surface((self.width, self.height))
+
+    def _rectangle(self):
+        return self._surface().get_rect(topleft=(self.x, self.y))
+
+    def clicked(self, pygameEventListener):
+        for event in pygameEventListener:
+            if event.type == pygame.MOUSEBUTTONUP:
+                return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
+        return False
 
 
 
@@ -184,7 +203,7 @@ class GameEngine(object):
         # replace some character that will cause some issues
         yt.title = yt.title.replace("|", "-")
         yt.title = yt.title.replace(":", "")
-
+        yt.title = yt.title.replace("/", "")
         # create a folder from the song title if it doesn't exist yet in the song folder
         os.makedirs("song/" + yt.title, exist_ok=True)
         wget.download(yt.thumbnail_url, out="song/" + yt.title)

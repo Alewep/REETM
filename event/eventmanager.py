@@ -73,11 +73,6 @@ class ButtonMenuReturnEvent(Event):
     def __init__(self):
         self.name = "Button menu return event"
 
-"""
-class ButtonMenuLinkYouTube(Event):
-    def __init__(self):
-        self.name = "Button menu link youtube"
-"""
 class InitializeEvent(Event):
     """
     Tells all listeners to initialize themselves.
