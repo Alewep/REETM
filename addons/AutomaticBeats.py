@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 import os
 from spleeter.separator import Separator
-from addons.ADTLib import ADT
+from REETM.addons.ADTLib import ADT
 import json
 from json import JSONEncoder
 import shutil

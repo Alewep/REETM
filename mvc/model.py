@@ -1,18 +1,17 @@
-import pygame
-from event.eventmanager import *
-from beatTraitement.AutomaticBeats import AutomaticBeats
+from REETM.mvc.eventmanager import *
+from REETM.addons.AutomaticBeats import AutomaticBeats
+from REETM.addons import library
 import tkinter
 import tkinter.filedialog
-
 import pygame
-
-import addons.library
-from mvc.eventmanager import *
-from addons.AutomaticBeats import AutomaticBeats
 from tkinter import *
 from tkinter.ttk import *
 import numpy as np
 import os
+import wget
+import subprocess
+from pytube import YouTube
+
 TIMEADVENCE = 2000  # time of advance in second
 
 # constants used to determine the score
@@ -118,30 +117,34 @@ class Button(StyleButton):
         else:
             super().draw(screen)
 
+
 class Textbox():
-    def __init__(self, x, y, width, height, fontLabel=pygame.font.Font(None,30)):
+    def __init__(self, x, y, width, height, fontLabel=pygame.font.Font(None, 30)):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.fontLabel = fontLabel
-        self.text = ''
-        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+        self.text = 'test'
         self.target = 0
+        self.fontLabel = pygame.font.Font(None, 25)
 
     def text_typing(self, add):
         self.text += add
-        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
 
     def text_backspace(self):
         self.text = self.text[:-1]
-        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+
     def reset(self):
         self.text = ''
-        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+
     def draw(self, screen):
-        pygame.draw.rect(screen,"red",pygame.Rect(self.x, self.y, self.width, self.height),2)
-        screen.blit(self.text_surface, (self.x, self.y))
+        surface = self._surface()
+        labelSurface = self.fontLabel.render(self.text, True, (255, 255, 255))
+        labelSurface_rect = labelSurface.get_rect(center=(self.width / 2, self.height / 2))
+        surface.blit(labelSurface, labelSurface_rect)
+
+        screen.blit(surface, (self.y, self.x))
 
     def getText(self):
         return self.text
@@ -157,7 +160,6 @@ class Textbox():
             if event.type == pygame.MOUSEBUTTONUP:
                 return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
         return False
-
 
 
 class ComboBox(object):
@@ -179,12 +181,12 @@ class ComboBox(object):
         # set the dimensions of the screen
         # and where it is placed
         self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
-        self.stockSongs = addons.library.getFiles('preprocessed')
-        self.listeSongs = Combobox(self.window, values = self.stockSongs, state='readonly')
+        self.stockSongs = library.getFiles('preprocessed')
+        self.listeSongs = Combobox(self.window, values=self.stockSongs, state='readonly')
         self.listeSongs.pack()
-        self.buttonconfirm = tkinter.Button(text = "confirmation")
+        self.buttonconfirm = tkinter.Button(text="confirmation")
         self.buttonconfirm.pack()
-        self.buttonconfirm.config(command = self.confirmation)
+        self.buttonconfirm.config(command=self.confirmation)
         self.clicked = False
         self.clikedquit = False
         self.chosenfile = None
@@ -195,13 +197,10 @@ class ComboBox(object):
         self.window.destroy()
         self.clikedquit = True
 
-
     def confirmation(self):
         self.chosenfile = self.listeSongs.get()
         self.clicked = True
         self.window.destroy()
-
-
 
 
 class GameEngine(object):
@@ -242,7 +241,7 @@ class GameEngine(object):
 
     # Mp4 file format to wav file format
     def mp4ToWav(self, yt):
-        command = "ffmpeg -y -i \"song/" + yt.title + "/" + yt.title + ".mp4\" -ab 160k -ac 2 -ar 44100 -vn \"song/" + yt.title + "/"+ yt.title+ ".wav\""
+        command = "ffmpeg -y -i \"song/" + yt.title + "/" + yt.title + ".mp4\" -ab 160k -ac 2 -ar 44100 -vn \"song/" + yt.title + "/" + yt.title + ".wav\""
         subprocess.call(command, shell=True)
 
     # fait tout à partir du link (nom de méthode à modifier)
@@ -363,18 +362,17 @@ class GameEngine(object):
 
     def savebestscore(self):
         musicfile = AutomaticBeats(self.file)
-        bestscorefilepath = "preprocessed/"+musicfile.getmusicname()+"/bestscore.csv"
+        bestscorefilepath = "preprocessed/" + musicfile.getmusicname() + "/bestscore.csv"
         if not os.path.exists(bestscorefilepath):
-            array_score = np.around(np.array([self.gamescore]),decimals=2)
+            array_score = np.around(np.array([self.gamescore]), decimals=2)
             np.savetxt(bestscorefilepath, array_score)
             self.evManager.Post(newBestScoreEvent(self.gamescore))
         else:
             saved_score = np.loadtxt(bestscorefilepath)
             if self.gamescore > saved_score:
-                array_score = np.around(np.array([self.gamescore]),decimals=2)
+                array_score = np.around(np.array([self.gamescore]), decimals=2)
                 np.savetxt(bestscorefilepath, array_score)
                 self.evManager.Post(newBestScoreEvent(self.gamescore))
-
 
     def run(self):
 
@@ -445,10 +443,10 @@ class GameEngine(object):
 
             if self.musicnamelist is not None:
                 self.passTimeMusic = False
-                self.file = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
+                self.file = "preprocessed/" + self.musicnamelist + "/" + self.musicnamelist + ".wav"
                 musicfile = AutomaticBeats(self.file)
-                instruments = "preprocessed/"+self.musicnamelist+"/instruments.json"
-                dict = addons.library.json_to_dict(instruments)
+                instruments = "preprocessed/" + self.musicnamelist + "/instruments.json"
+                dict = library.json_to_dict(instruments)
                 self.arrayKick = dict["Kick"] * 1000 + TIMEADVENCE
                 self.arraySnare = dict["Snare"] * 1000 + TIMEADVENCE
                 self.arrayHihat = dict["Hihat"] * 1000 + TIMEADVENCE
@@ -464,7 +462,6 @@ class GameEngine(object):
                 self.listKick = self.arrayKick.tolist()
                 self.listSnare = self.arraySnare.tolist()
                 self.listHihat = self.arrayHihat.tolist()
-
 
 
 # State machine constants for the StateMachine class below

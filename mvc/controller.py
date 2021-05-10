@@ -1,12 +1,9 @@
 import pygame
 import os
-from mvc.eventmanager import *
-from mvc import model
-
-import view.view
-from event.eventmanager import *
-from model import model
 import pyperclip
+from REETM.mvc.eventmanager import *
+from REETM.mvc import model
+from REETM.mvc import view
 
 # keys used ingame
 KeysList = [pygame.K_a, pygame.K_z, pygame.K_e]
@@ -66,33 +63,34 @@ class Keyboard(object):
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_EMPTYLIBRARY))
 
-
     def keydownyoutubelink(self, event):
-        #not optimized way, will modify later
+        # not optimized way, will modify later
+
         if event.type == pygame.MOUSEBUTTONDOWN:
-            view.view.YOUTUBELINKTEXTBOX.target = 0
+            self.view.YOUTUBELINKTEXTBOX.target = 0
 
-        if view.view.YOUTUBELINKTEXTBOX.clicked(self.listEvent):
-            view.view.YOUTUBELINKTEXTBOX.target = 1
+        if self.view.YOUTUBELINKTEXTBOX.clicked(self.listEvent):
+            self.view.YOUTUBELINKTEXTBOX.target = 1
 
-        if(view.view.YOUTUBELINKTEXTBOX.target == 1):
+        if (self.view.YOUTUBELINKTEXTBOX.target == 1):
             if event.type == pygame.KEYDOWN:
-                #if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
+                # if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
                 if event.key == pygame.K_BACKSPACE:
-                    view.view.YOUTUBELINKTEXTBOX.text_backspace()
+                    self.view.YOUTUBELINKTEXTBOX.text_backspace()
                 else:
                     if pygame.key.get_pressed()[pygame.K_LCTRL] and pygame.key.get_pressed()[pygame.K_v]:
-                        view.view.YOUTUBELINKTEXTBOX.text_typing(pyperclip.paste())
+                        self.view.YOUTUBELINKTEXTBOX.text_typing(pyperclip.paste())
                     else:
                         if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                            self.model.process(view.view.YOUTUBELINKTEXTBOX.getText())
+                            self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
                         else:
-                            view.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
+                            self.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
+                            print(self.view.YOUTUBELINKTEXTBOX.text)
 
-        if view.view.BUTTONYOUTUBELINK.cliked(self.listEvent):
-            self.model.process(view.view.YOUTUBELINKTEXTBOX.getText())
-        if view.view.BUTTONRESET.cliked(self.listEvent):
-            view.view.YOUTUBELINKTEXTBOX.reset()
+        if self.view.BUTTONYOUTUBELINK.cliked(self.listEvent):
+            self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
+        if self.view.BUTTONRESET.cliked(self.listEvent):
+            view.YOUTUBELINKTEXTBOX.reset()
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc

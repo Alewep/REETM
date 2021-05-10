@@ -1,23 +1,16 @@
 import tkinter.messagebox
 
-from mvc import model
-from mvc.model import *
+from REETM.mvc.eventmanager import *
+from REETM.mvc.model import *
 import tkinter
 import tkinter.filedialog
+
 CHECKLIGNE = 150
 
 screen_height = 720
 screen_width = 1280
 
-YOUTUBELINKTEXTBOX = Textbox(300, 450, 500, 30)
 
-BUTTONYOUTUBELINK = Button(450, 830, 115, 30,
-                        image="DownloadButton.jpg",
-                        placeHolder=StyleButton(450, 830, 115, 30, image="DownloadButtonSelect.jpg"))
-
-BUTTONRESET = Button(450, 956, 115, 30,
-                        image="ClearButton.jpg",
-                        placeHolder=StyleButton(450, 956, 115, 30, image="ClearButtonSelect.jpg"))
 
 
 
@@ -58,6 +51,10 @@ class GraphicalView(object):
         self.buttonMenuReturn = None
         self.fileSelected = None
         self.songs_list = None
+
+        self.YOUTUBELINKTEXTBOX = None
+        self.BUTTONYOUTUBELINK = None
+        self.BUTTONRESET = None
 
     # add a hit to the screen
     def resetInstrument(self):
@@ -231,15 +228,15 @@ class GraphicalView(object):
         fontTitle = pygame.font.SysFont('arial', 200)
 
         title = fontTitle.render("Reetm", True, (133, 193, 233))
-        self.screen.blit(title, (350, 230))
-        self.screen.blit(title, (360, 150))
+
+        self.screen.blit(title, (350, 150))
 
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
-        BUTTONMENUPLAY.draw(self.screen)
-        YOUTUBELINKTEXTBOX.draw(self.screen)
-        BUTTONYOUTUBELINK.draw(self.screen)
-        BUTTONRESET.draw(self.screen)
+
+        self.YOUTUBELINKTEXTBOX.draw(self.screen)
+        self.BUTTONYOUTUBELINK.draw(self.screen)
+        self.BUTTONRESET.draw(self.screen)
         pygame.display.flip()
 
     def renderChooseFile(self):
@@ -253,7 +250,7 @@ class GraphicalView(object):
         top.destroy()
 
     def renderlibrary(self):
-        self.songs_list = model.ComboBox()
+        self.songs_list = ComboBox()
         self.songs_list.window.mainloop()
 
     def renderemptylibrary(self):
@@ -305,9 +302,13 @@ class GraphicalView(object):
         pygame.display.set_caption('Reetm')
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
-        self.buttonMenuPlay = Button(600, 550, 191, 64,
-                                     image="assets/tile000.png",
-                                     placeHolder=StyleButton(600, 550, 191, 64, image="assets/tile002.png"))
+        self.buttonMenuPlay = Button(480,650, 191, 64,
+                                    label="Choose file",
+                                    color=(255, 0, 0),
+                                    colorLabel=(0, 0, 0),
+                                    placeHolder=StyleButton(480,650, 191, 64, label="Choose file", color=(0, 0, 0),
+                                                            colorLabel=(255, 0, 0))
+                                    )
 
         self.buttonMenuReturn = Button(600, 550, 191, 64,
                                        label="Continue",
@@ -317,13 +318,23 @@ class GraphicalView(object):
                                                                colorLabel=(255, 0, 0))
                                        )
 
-        self.buttonLibrary = Button(500, 550, 191, 64,
+        self.buttonLibrary = Button(480,380, 191, 64,
                                        label="Library",
                                        color=(255, 0, 0),
                                        colorLabel=(0, 0, 0),
-                                       placeHolder=StyleButton(500, 550, 191, 64, label="Library", color=(0, 0, 0),
+                                       placeHolder=StyleButton(480,380, 191, 64, label="Library", color=(0, 0, 0),
                                                                colorLabel=(255, 0, 0))
                                        )
+
+        self.YOUTUBELINKTEXTBOX = Textbox(380, 380, 500, 50)
+
+        self.BUTTONYOUTUBELINK = Button(390, 900, 115, 30,
+                                   image="assets/DownloadButton.jpg",
+                                   placeHolder=StyleButton(390, 900, 115, 30, image="assets/DownloadButtonSelect.jpg"))
+
+        self.BUTTONRESET = Button(390, 1025, 115, 30,
+                             image="assets/ClearButton.jpg",
+                             placeHolder=StyleButton(390, 1025, 115, 30, image="assets/ClearButtonSelect.jpg"))
 
         # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
