@@ -7,8 +7,8 @@ Created on Fri May 26 15:10:50 2017
 
 import os
 import inspect
-import madmom
 import numpy as np
+import addons.madmom as madmom
 import subprocess
 from fpdf import FPDF
 import addons.ADTLib as ADTLib
@@ -18,7 +18,7 @@ import tensorflow.compat.v1.nn.rnn_cell as rnn
 tf.compat.v1.disable_eager_execution()
 
 def spec(file):
-    return madmom.audio.spectrogram.Spectrogram(file, frame_size=2048, hop_size=512, fft_size=2048,num_channels=1)
+    return madmom.audio.spectrogram.Spectrogram(file, frame_size=2048, hop_size=512, fft_size=2048, num_channels=1)
     
 def meanPPmm(Track,Lambda,mi,ma,hop=512,fs=44100,dif=0.05):
 
