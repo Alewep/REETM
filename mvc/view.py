@@ -9,6 +9,17 @@ CHECKLIGNE = 150
 screen_height = 720
 screen_width = 1280
 
+YOUTUBELINKTEXTBOX = Textbox(300, 450, 500, 30)
+
+BUTTONYOUTUBELINK = Button(450, 830, 115, 30,
+                        image="DownloadButton.jpg",
+                        placeHolder=StyleButton(450, 830, 115, 30, image="DownloadButtonSelect.jpg"))
+
+BUTTONRESET = Button(450, 956, 115, 30,
+                        image="ClearButton.jpg",
+                        placeHolder=StyleButton(450, 956, 115, 30, image="ClearButtonSelect.jpg"))
+
+
 
 class GraphicalView(object):
     """
@@ -30,14 +41,11 @@ class GraphicalView(object):
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.model = model
-
         self.isinitialized = False
-
         self.screen = None
         self.clock = None
         self.imgMenu = None
         self.smallfont = None
-
         self.kick_state = []
         self.snare_state = []
         self.hihat_state = []
@@ -224,9 +232,14 @@ class GraphicalView(object):
 
         title = fontTitle.render("Reetm", True, (133, 193, 233))
         self.screen.blit(title, (350, 230))
+        self.screen.blit(title, (360, 150))
 
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
+        BUTTONMENUPLAY.draw(self.screen)
+        YOUTUBELINKTEXTBOX.draw(self.screen)
+        BUTTONYOUTUBELINK.draw(self.screen)
+        BUTTONRESET.draw(self.screen)
         pygame.display.flip()
 
     def renderChooseFile(self):

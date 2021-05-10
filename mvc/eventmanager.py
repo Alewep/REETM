@@ -63,6 +63,7 @@ class newBestScoreEvent(Event):
         self.newbestscore = score
 
 class ScoreEvent(Event):
+
     def __init__(self, type_success, current_score):
         self.name = "Score event"
         self.type_success = type_success

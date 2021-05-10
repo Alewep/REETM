@@ -1,4 +1,8 @@
+import pygame
+from event.eventmanager import *
+from beatTraitement.AutomaticBeats import AutomaticBeats
 import tkinter
+import tkinter.filedialog
 
 import pygame
 
@@ -114,6 +118,47 @@ class Button(StyleButton):
         else:
             super().draw(screen)
 
+class Textbox():
+    def __init__(self, x, y, width, height, fontLabel=pygame.font.Font(None,30)):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.fontLabel = fontLabel
+        self.text = ''
+        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+        self.target = 0
+
+    def text_typing(self, add):
+        self.text += add
+        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+
+    def text_backspace(self):
+        self.text = self.text[:-1]
+        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+    def reset(self):
+        self.text = ''
+        self.text_surface = self.fontLabel.render(self.text, True, (133, 193, 233))
+    def draw(self, screen):
+        pygame.draw.rect(screen,"red",pygame.Rect(self.x, self.y, self.width, self.height),2)
+        screen.blit(self.text_surface, (self.x, self.y))
+
+    def getText(self):
+        return self.text
+
+    def _surface(self):
+        return pygame.Surface((self.width, self.height))
+
+    def _rectangle(self):
+        return self._surface().get_rect(topleft=(self.x, self.y))
+
+    def clicked(self, pygameEventListener):
+        for event in pygameEventListener:
+            if event.type == pygame.MOUSEBUTTONUP:
+                return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
+        return False
+
+
 
 class ComboBox(object):
 
@@ -185,6 +230,58 @@ class GameEngine(object):
         evManager.RegisterListener(self)
         self.running = False
         self.state = StateMachine()
+
+    # Download a youtube video in mp4 format from a youtube link
+    def DL_mp4(self, yt):
+        yt.streams.filter().first().download(output_path="song/" + yt.title + "/", filename=yt.title)
+
+    # Download a youtube video in mp4 format from a youtube link without sound
+    def DL_mp4_nosound(self, yt):
+        yt.streams.filter(only_video=True).first().download(output_path="song/" + yt.title + "/",
+                                                            filename=yt.title + "nosound")
+
+    # Mp4 file format to wav file format
+    def mp4ToWav(self, yt):
+        command = "ffmpeg -y -i \"song/" + yt.title + "/" + yt.title + ".mp4\" -ab 160k -ac 2 -ar 44100 -vn \"song/" + yt.title + "/"+ yt.title+ ".wav\""
+        subprocess.call(command, shell=True)
+
+    # fait tout à partir du link (nom de méthode à modifier)
+    def process(self, yt_link):
+        yt = YouTube(yt_link)
+
+        # create a song folder if it doesn't exist yet
+        os.makedirs("song", exist_ok=True)
+
+        # replace some character that will cause some issues
+        yt.title = yt.title.replace("|", "-")
+        yt.title = yt.title.replace(":", "")
+        yt.title = yt.title.replace("/", "")
+        # create a folder from the song title if it doesn't exist yet in the song folder
+        os.makedirs("song/" + yt.title, exist_ok=True)
+        wget.download(yt.thumbnail_url, out="song/" + yt.title)
+        print(yt.video_id)
+        self.DL_mp4(yt)
+        self.DL_mp4_nosound(yt)
+        self.mp4ToWav(yt)
+        self.file = "song/" + yt.title + "/" + yt.title + ".wav"
+        self.evManager.Post(StateChangeEvent(STATE_PLAY))
+        self.gamescore = 0
+
+    def buttonPlay(self):
+        top = tkinter.Tk()
+        top.withdraw()  # hide window
+        self.file = tkinter.filedialog.askopenfilename(parent=top, title="Select a Music in wav format",
+                                                       filetypes=(("wav files",
+                                                                   "*.wav*"),
+                                                                  ("all files",
+                                                                   "*.*")))
+        top.destroy()
+        self.evManager.Post(StateChangeEvent(STATE_PLAY))
+        self.gamescore = 0
+
+    def buttonReturn(self):
+        self.evManager.Post(StateChangeEvent(STATE_MENU))
+        self.gamescore = 0
 
     def notify(self, event):
 
@@ -367,6 +464,7 @@ class GameEngine(object):
                 self.listKick = self.arrayKick.tolist()
                 self.listSnare = self.arraySnare.tolist()
                 self.listHihat = self.arrayHihat.tolist()
+
 
 
 # State machine constants for the StateMachine class below
