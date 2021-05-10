@@ -291,6 +291,8 @@ class GameEngine(object):
                 pass
             elif self.state.peek() == STATE_LIBRARY:
                 pass
+            elif self.state.peek() == STATE_EMPTYLIBRARY:
+                pass
             elif self.state.peek() == STATE_ENDGAME:
                 self.savebestscore()
             elif self.state.peek() == STATE_CHOOSEFILE:
@@ -316,6 +318,8 @@ class GameEngine(object):
         elif self.state.peek() == STATE_ENDGAME:
             pass
         elif self.state.peek() == STATE_CHOOSEFILE:
+            pass
+        elif self.state.peek() == STATE_EMPTYLIBRARY:
             pass
         elif self.state.peek() == STATE_PLAY:
             if self.file is not None:
@@ -371,6 +375,7 @@ STATE_LIBRARY = 2
 STATE_PLAY = 3
 STATE_ENDGAME = 4
 STATE_CHOOSEFILE = 5
+STATE_EMPTYLIBRARY = 6
 
 
 class StateMachine(object):

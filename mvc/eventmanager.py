@@ -68,6 +68,10 @@ class ScoreEvent(Event):
         self.type_success = type_success
         self.score = current_score
 
+class EmptyLibraryEvent(Event):
+    def __init__(self):
+        self.name = "Empty library event"
+
 
 class FileChooseEvent(Event):
     def __init__(self, file):

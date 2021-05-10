@@ -140,6 +140,8 @@ class GraphicalView(object):
                 self.renderendgame()
             if currentstate == STATE_CHOOSEFILE:
                 self.renderChooseFile()
+            if currentstate == STATE_EMPTYLIBRARY:
+                self.renderemptylibrary()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             if event.num == 0:
@@ -159,7 +161,6 @@ class GraphicalView(object):
                 self.e_pressed = event.pressed
         elif isinstance(event,newBestScoreEvent):
             self.rendernewbestscore(event.newbestscore)
-
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
     def drawCheckCircles(self, height):
@@ -177,6 +178,18 @@ class GraphicalView(object):
             pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0), [600, height - CHECKLIGNE], 31, 6)
         else:
             pygame.draw.circle(self.screen, color, [600, height - CHECKLIGNE], 25, 1)
+
+    def drawCheckLetters(self, height):
+        color = (135, 206, 235)
+        police = pygame.font.Font(None, 60)
+
+        letter_a = police.render("A", True, pygame.Color(255, 0, 0))
+        letter_z = police.render("Z", True, pygame.Color(0, 0, 255))
+        letter_e = police.render("E", True, pygame.Color(255, 255, 0))
+
+        self.screen.blit(letter_a, [385, height - CHECKLIGNE + 25])
+        self.screen.blit(letter_z, [485, height - CHECKLIGNE + 25])
+        self.screen.blit(letter_e, [585, height - CHECKLIGNE + 25])
 
     def renderplay(self):
         """
@@ -198,6 +211,7 @@ class GraphicalView(object):
             self.displaySucces(self.message)
         self.displayScore()
         self.drawCheckCircles(screen_height)
+        self.drawCheckLetters(screen_height)
         # flip the display to show whatever we drew
         pygame.display.flip()
 
@@ -229,6 +243,19 @@ class GraphicalView(object):
         self.songs_list = model.ComboBox()
         self.songs_list.window.mainloop()
 
+    def renderemptylibrary(self):
+        window = tkinter.Tk()
+        w = 300  # width for the Tk root
+        h = 400
+        ws = window.winfo_screenwidth()  # width of the screen
+        hs = window.winfo_screenheight()
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+        window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        window.withdraw()
+        infobox = tkinter.messagebox.showinfo(parent=window, title="Error",
+                                              message="The library is empty ! Please select a song via \"Start\" Button first")
+        window.destroy()
 
     def renderendgame(self):
 

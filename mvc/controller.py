@@ -1,5 +1,5 @@
 import pygame
-
+import os
 from mvc.eventmanager import *
 from mvc import model
 
@@ -43,6 +43,8 @@ class Keyboard(object):
                         self.keydownplay(event)
                     if currentstate == model.STATE_LIBRARY:
                         self.keydownlibrary(event)
+                    if currentstate == model.STATE_EMPTYLIBRARY:
+                        self.keydownemptylibrary(event)
                     if currentstate == model.STATE_ENDGAME:
                         self.keydownendgame(event)
                     if currentstate == model.STATE_CHOOSEFILE:
@@ -52,7 +54,11 @@ class Keyboard(object):
         if self.view.buttonMenuPlay.cliked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_CHOOSEFILE))
         if self.view.buttonLibrary.cliked(self.listEvent):
-            self.evManager.Post(StateChangeEvent(model.STATE_LIBRARY))
+            if os.path.isdir('preprocessed'):
+                self.evManager.Post(StateChangeEvent(model.STATE_LIBRARY))
+            else:
+                self.evManager.Post(StateChangeEvent(model.STATE_EMPTYLIBRARY))
+
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
@@ -71,7 +77,7 @@ class Keyboard(object):
 
     def keydownchoosefile(self, event):
         if self.view.fileSelected is not None:
-            if not self.view.fileSelected == () :
+            if not self.view.fileSelected == ():
                 self.evManager.Post(FileChooseEvent(self.view.fileSelected))
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
@@ -85,6 +91,8 @@ class Keyboard(object):
         if self.view.songs_list.clikedquit:
             self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
+    def keydownemptylibrary(self,event):
+        self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
     def keydownendgame(self, event):
         if self.view.buttonMenuReturn.cliked(self.listEvent):
