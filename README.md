@@ -31,7 +31,7 @@ python main.py
 
 
 ## Authors
-* **Adrien Callico** _a.k.a_ [aiwendi-bot](https://github.com/aiwendi-bot)
+* **Adrien Callico** _a.k.a_ [aiwendil-bot](https://github.com/aiwendil-bot)
 * **Olivier Gao** _a.k.a_ [Akuno](https://github.com/Akuno0)
 * **Alexandre Monnier** _a.k.a_ [Alewep](https://github.com/Alewep)
 
