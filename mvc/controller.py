@@ -1,13 +1,15 @@
 import pygame
 import os
 import pyperclip
-from REETM.mvc.eventmanager import *
-from REETM.mvc import model
-from REETM.mvc import view
+from mvc.eventmanager import *
+from mvc import model
+from mvc import view
 
 # keys used ingame
-KeysList = [pygame.K_a, pygame.K_z, pygame.K_e]
-
+KeysListold = model.config["keyslist"]
+KeysList = []
+for elem in KeysListold:
+    KeysList.append(eval(elem))
 
 class Keyboard(object):
     """
@@ -52,6 +54,8 @@ class Keyboard(object):
                         self.keydownendgame(event)
                     if currentstate == model.STATE_CHOOSEFILE:
                         self.keydownchoosefile(event)
+                    if currentstate == model.STATE_FILENOTFOUND:
+                        self.keydownfilenotfound(event)
 
 
     def keydownmenu(self, event):
@@ -72,7 +76,7 @@ class Keyboard(object):
         if self.view.YOUTUBELINKTEXTBOX.clicked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.target = 1
 
-        if (self.view.YOUTUBELINKTEXTBOX.target == 1):
+        if self.view.YOUTUBELINKTEXTBOX.target == 1:
             if event.type == pygame.KEYDOWN:
                 # if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
                 if event.key == pygame.K_BACKSPACE:
@@ -90,7 +94,7 @@ class Keyboard(object):
         if self.view.BUTTONYOUTUBELINK.cliked(self.listEvent):
             self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
         if self.view.BUTTONRESET.cliked(self.listEvent):
-            view.YOUTUBELINKTEXTBOX.reset()
+            self.view.YOUTUBELINKTEXTBOX.reset()
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
@@ -106,6 +110,7 @@ class Keyboard(object):
             if event.key in KeysList:
                 newInputEvent = InputEvent(KeysList.index(event.key), False)
                 self.evManager.Post(newInputEvent)
+
 
     def keydownchoosefile(self, event):
         if self.view.fileSelected is not None:
@@ -126,6 +131,11 @@ class Keyboard(object):
     def keydownemptylibrary(self,event):
         self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
+    def keydownfilenotfound(self,event):
+        self.evManager.Post(StateChangeEvent(model.STATE_MENU))
+
     def keydownendgame(self, event):
         if self.view.buttonMenuReturn.cliked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_MENU))
+
+

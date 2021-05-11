@@ -1,7 +1,8 @@
 import tkinter.messagebox
 
-from REETM.mvc.eventmanager import *
-from REETM.mvc.model import *
+from mvc.eventmanager import *
+from mvc.model import *
+import mvc.model
 import tkinter
 import tkinter.filedialog
 
@@ -9,10 +10,6 @@ CHECKLIGNE = 150
 
 screen_height = 720
 screen_width = 1280
-
-
-
-
 
 class GraphicalView(object):
     """
@@ -64,7 +61,7 @@ class GraphicalView(object):
 
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
-        instrument.setDistanceInPixel(height - CHECKLIGNE)
+        instrument.setDistanceInPixel(height - mvc.model.config["checkligne"])
         liste_instrument.append(instrument)
 
     def updateInstrument_state(self, liste_instrument):
@@ -78,8 +75,8 @@ class GraphicalView(object):
                 liste_instrument.pop(i)
 
     def isexcellent(self, beat):
-        return (beat.time < pygame.time.get_ticks() + DELTA_EXCELLENT) & (
-                beat.time > pygame.time.get_ticks() - DELTA_MEH)
+        return (beat.time < pygame.time.get_ticks() + mvc.model.config["delta_excellent"]) & (
+                beat.time > pygame.time.get_ticks() - mvc.model.config["delta_meh"])
 
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
@@ -147,6 +144,8 @@ class GraphicalView(object):
                 self.renderChooseFile()
             if currentstate == STATE_EMPTYLIBRARY:
                 self.renderemptylibrary()
+            if currentstate == STATE_FILENOTFOUND:
+                self.renderfilenotfound()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             if event.num == 0:
@@ -172,17 +171,17 @@ class GraphicalView(object):
         color = (135, 206, 235)
 
         if self.a_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0), [400, height - CHECKLIGNE], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0), [400, height - mvc.model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [400, height - CHECKLIGNE], 25, 1)
+            pygame.draw.circle(self.screen, color, [400, height - mvc.model.config["checkligne"]], 25, 1)
         if self.z_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255), [500, height - CHECKLIGNE], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255), [500, height - model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [500, height - CHECKLIGNE], 25, 1)
+            pygame.draw.circle(self.screen, color, [500, height - mvc.model.config["checkligne"]], 25, 1)
         if self.e_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0), [600, height - CHECKLIGNE], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0), [600, height - model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [600, height - CHECKLIGNE], 25, 1)
+            pygame.draw.circle(self.screen, color, [600, height - mvc.model.config["checkligne"]], 25, 1)
 
     def drawCheckLetters(self, height):
         color = (135, 206, 235)
@@ -192,9 +191,9 @@ class GraphicalView(object):
         letter_z = police.render("Z", True, pygame.Color(0, 0, 255))
         letter_e = police.render("E", True, pygame.Color(255, 255, 0))
 
-        self.screen.blit(letter_a, [385, height - CHECKLIGNE + 25])
-        self.screen.blit(letter_z, [485, height - CHECKLIGNE + 25])
-        self.screen.blit(letter_e, [585, height - CHECKLIGNE + 25])
+        self.screen.blit(letter_a, [385, height - mvc.model.config["checkligne"] + 25])
+        self.screen.blit(letter_z, [485, height - mvc.model.config["checkligne"] + 25])
+        self.screen.blit(letter_e, [585, height - mvc.model.config["checkligne"] + 25])
 
     def renderplay(self):
         """
@@ -265,6 +264,20 @@ class GraphicalView(object):
         window.withdraw()
         infobox = tkinter.messagebox.showinfo(parent=window, title="Error",
                                               message="The library is empty ! Please select a song via \"Start\" Button first")
+        window.destroy()
+
+    def renderfilenotfound(self):
+        window = tkinter.Tk()
+        w = 300  # width for the Tk root
+        h = 400
+        ws = window.winfo_screenwidth()  # width of the screen
+        hs = window.winfo_screenheight()
+        x = (ws / 2) - (w / 2)
+        y = (hs / 2) - (h / 2)
+        window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+        window.withdraw()
+        infobox = tkinter.messagebox.showinfo(parent=window, title="Error",
+                                              message="File not found !")
         window.destroy()
 
     def renderendgame(self):

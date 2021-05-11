@@ -1,6 +1,6 @@
-from REETM.mvc.eventmanager import *
-from REETM.addons.AutomaticBeats import AutomaticBeats
-from REETM.addons import library
+from mvc.eventmanager import *
+from addons.AutomaticBeats import AutomaticBeats
+from addons import library
 import tkinter
 import tkinter.filedialog
 import pygame
@@ -8,26 +8,15 @@ from tkinter import *
 from tkinter.ttk import *
 import numpy as np
 import os
+import json
 import wget
 import subprocess
 from pytube import YouTube
 
-TIMEADVENCE = 2000  # time of advance in second
-
 # constants used to determine the score
 
-DELTA_BAD = 150  # ms
-DELTA_MEH = 100  # ms
-DELTA_GOOD = 50  # ms
-DELTA_EXCELLENT = 25  # ms
-
-# score depending on result
-
-SCORE_FAIL = -0.5
-SCORE_BAD = 0.25
-SCORE_MEH = 0.5
-SCORE_GOOD = 0.75
-SCORE_EXCELLENT = 1
+with open('config.json') as json_data:
+    config = json.load(json_data)
 
 
 class Beat(object):
@@ -191,7 +180,7 @@ class ComboBox(object):
         self.clikedquit = False
         self.chosenfile = None
 
-        self.window.protocol('WM_DELETE_WINDOW', self.quit)  # root is your root window
+        self.window.protocol('WM_DELETE_WINDOW', self.quit)
 
     def quit(self):
         self.window.destroy()
@@ -311,7 +300,7 @@ class GameEngine(object):
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
     def instrumentNow(self, liste_beat, num_classe):
-        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - TIMEADVENCE)):
+        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - config["timeadvence"])):
             newBeatEvent = BeatEvent(Beat(liste_beat[0]), num_classe)
             self.evManager.Post(newBeatEvent)
             liste_beat.pop(0)
@@ -331,28 +320,28 @@ class GameEngine(object):
 
         beat_to_delete = None
 
-        list_bad = work_list[(work_list > beat_time - DELTA_BAD) & (work_list < beat_time + DELTA_BAD)]
+        list_bad = work_list[(work_list > beat_time - config["delta_bad"]) & (work_list < beat_time + config["delta_bad"])]
         success_class = 'fail'
-        score_to_add = SCORE_FAIL
+        score_to_add = config["score_fail"]
         if len(list_bad) > 0:
-            list_meh = work_list[(work_list > beat_time - DELTA_MEH) & (work_list < beat_time + DELTA_MEH)]
+            list_meh = work_list[(work_list > beat_time - config["delta_meh"]) & (work_list < beat_time + config["delta_meh"])]
             success_class = 'bad'
-            score_to_add = SCORE_BAD
+            score_to_add = config["score_bad"]
             beat_to_delete = list_bad[0]
             if len(list_meh) > 0:
-                list_good = work_list[(work_list > beat_time - DELTA_GOOD) & (work_list < beat_time + DELTA_GOOD)]
+                list_good = work_list[(work_list > beat_time - config["delta_good"]) & (work_list < beat_time + config["delta_good"])]
                 success_class = 'meh'
-                score_to_add = SCORE_MEH
+                score_to_add = config["score_meh"]
                 beat_to_delete = list_meh[0]
                 if len(list_good) > 0:
                     list_excellent = work_list[
-                        (work_list > beat_time - DELTA_EXCELLENT) & (work_list < beat_time + DELTA_EXCELLENT)]
+                        (work_list > beat_time - config["delta_excellent"]) & (work_list < beat_time + config["delta_excellent"])]
                     success_class = 'good'
-                    score_to_add = SCORE_GOOD
+                    score_to_add = config["score_good"]
                     beat_to_delete = list_good[0]
                     if len(list_excellent) > 0:
                         success_class = 'excellent'
-                        score_to_add = SCORE_EXCELLENT
+                        score_to_add = config["score_excellent"]
                         beat_to_delete = list_excellent[0]
 
         self.gamescore += score_to_add
@@ -361,8 +350,8 @@ class GameEngine(object):
         return success_class
 
     def savebestscore(self):
-        musicfile = AutomaticBeats(self.file)
-        bestscorefilepath = "preprocessed/" + musicfile.getmusicname() + "/bestscore.csv"
+        musicfile = AutomaticBeats(self.file,config["spleeter"])
+        bestscorefilepath = "preprocessed/"+musicfile.getmusicname()+"/bestscore.csv"
         if not os.path.exists(bestscorefilepath):
             array_score = np.around(np.array([self.gamescore]), decimals=2)
             np.savetxt(bestscorefilepath, array_score)
@@ -392,14 +381,16 @@ class GameEngine(object):
                 self.savebestscore()
             elif self.state.peek() == STATE_CHOOSEFILE:
                 pass
+            elif self.state.peek() == STATE_FILENOTFOUND:
+                pass
             elif self.state.peek() == STATE_PLAY:
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
                 self.instrumentNow(self.listHihat, 2)
-                if not self.passTimeMusic and pygame.time.get_ticks() >= TIMEADVENCE + self.time_start:
+                if not self.passTimeMusic and pygame.time.get_ticks() >= config["timeadvence"] + self.time_start:
                     self.passTimeMusic = True
                     pygame.mixer.music.play()
-                if pygame.time.get_ticks() >= self.duration + self.time_start + TIMEADVENCE:
+                if pygame.time.get_ticks() >= self.duration + self.time_start + config["timeadvence"]:
                     self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
             else:
                 self.running = False
@@ -416,17 +407,19 @@ class GameEngine(object):
             pass
         elif self.state.peek() == STATE_EMPTYLIBRARY:
             pass
+        elif self.state.peek() == STATE_FILENOTFOUND:
+            pass
         elif self.state.peek() == STATE_PLAY:
             if self.file is not None:
                 self.passTimeMusic = False
-                musicfile = AutomaticBeats(self.file)
+                musicfile = AutomaticBeats(self.file, config["spleeter"])
                 instruments = musicfile.getinstruments()
                 musicfile.savejson()
                 musicfile.copy()
 
-                self.arrayKick = instruments["Kick"] * 1000 + TIMEADVENCE
-                self.arraySnare = instruments["Snare"] * 1000 + TIMEADVENCE
-                self.arrayHihat = instruments["Hihat"] * 1000 + TIMEADVENCE
+                self.arrayKick = instruments["Kick"] * 1000 + config["timeadvence"]
+                self.arraySnare = instruments["Snare"] * 1000 + config["timeadvence"]
+                self.arrayHihat = instruments["Hihat"] * 1000 + config["timeadvence"]
 
                 pygame.mixer.init()
                 pygame.mixer.music.load(self.file)
@@ -443,13 +436,26 @@ class GameEngine(object):
 
             if self.musicnamelist is not None:
                 self.passTimeMusic = False
-                self.file = "preprocessed/" + self.musicnamelist + "/" + self.musicnamelist + ".wav"
-                musicfile = AutomaticBeats(self.file)
-                instruments = "preprocessed/" + self.musicnamelist + "/instruments.json"
+                self.file = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
+                musicfile = AutomaticBeats(self.file,config["spleeter"])
+                if config["spleeter"]:
+                    path = "preprocessed/"+self.musicnamelist+"/instrumentswithspleeter.json"
+                    if os.path.exists(path):
+                        instruments = path
+                    else:
+                        self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
+                        return
+                else:
+                    path = "preprocessed/" + self.musicnamelist + "/instrumentswithoutspleeter.json"
+                    if os.path.exists(path):
+                        instruments = path
+                    else:
+                        self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
+                        return
                 dict = library.json_to_dict(instruments)
-                self.arrayKick = dict["Kick"] * 1000 + TIMEADVENCE
-                self.arraySnare = dict["Snare"] * 1000 + TIMEADVENCE
-                self.arrayHihat = dict["Hihat"] * 1000 + TIMEADVENCE
+                self.arrayKick = dict["Kick"] * 1000 + config["timeadvence"]
+                self.arraySnare = dict["Snare"] * 1000 + config["timeadvence"]
+                self.arrayHihat = dict["Hihat"] * 1000 + config["timeadvence"]
 
                 pygame.mixer.init()
                 pygame.mixer.music.load(self.file)
@@ -471,6 +477,8 @@ STATE_PLAY = 3
 STATE_ENDGAME = 4
 STATE_CHOOSEFILE = 5
 STATE_EMPTYLIBRARY = 6
+STATE_FILENOTFOUND = 7
+
 
 
 class StateMachine(object):
