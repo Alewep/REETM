@@ -50,6 +50,9 @@ class GraphicalView(object):
         self.buttonMenuReturn = None
         self.fileSelected = None
         self.songs_list = None
+        self.counter = 0
+        self.cooldown = 1000
+        self.last = pygame.time.get_ticks()
 
         self.YOUTUBELINKTEXTBOX = None
         self.BUTTONYOUTUBELINK = None
@@ -66,7 +69,6 @@ class GraphicalView(object):
         _, height = pygame.display.get_surface().get_size()
         instrument.setDistanceInPixel(height - self.model.config["checkligne"])
         self.instruments_state[numberclass].append(instrument)
-        print(numberclass)
 
     def updateInstrument_state(self, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
@@ -144,6 +146,8 @@ class GraphicalView(object):
                 self.renderemptylibrary()
             if currentstate == STATE_FILENOTFOUND:
                 self.renderfilenotfound()
+            if currentstate == STATE_LOADING:
+                self.renderloading()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
             self.addInstrument(event.instrument, event.num)
@@ -304,6 +308,38 @@ class GraphicalView(object):
         infobox = tkinter.messagebox.showinfo(parent=window, title="Congrats !",
                                               message="New best score : " + str(score) + " !")
         window.destroy()
+
+    def renderloading(self):
+
+        fontTitle = pygame.font.SysFont('arial', 100)
+
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.imgMenu, (0, 0))
+        text = fontTitle.render("Loading", True, (133, 193, 233))
+        if self.counter == 3:
+            self.counter =0
+
+        now = pygame.time.get_ticks()
+
+        if now - self.last >= self.cooldown:
+            self.last = now
+            self.counter += 1
+        if self.counter == 0:
+            text = fontTitle.render("Loading.", True, (133, 193, 233))
+        elif self.counter == 1:
+            text = fontTitle.render("Loading..", True, (133, 193, 233))
+        elif self.counter == 2:
+            text = fontTitle.render("Loading...", True, (133, 193, 233))
+
+        self.screen.blit(text, (375, 300))
+
+
+        pygame.display.flip()
+
+
+
+
+
 
     def initialize(self):
         """

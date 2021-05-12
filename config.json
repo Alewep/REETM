@@ -16,9 +16,11 @@
 
   "keyslist" : ["pygame.K_a", "pygame.K_z", "pygame.K_e"],
 
-  "spleeter" : true,
+  "spleeter" : false,
 
-  "simplification" : true
+  "simplification" : true,
+
+  "difficulty" : "hard"
 
 
 }

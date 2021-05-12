@@ -229,6 +229,8 @@ class GameEngine(object):
                     pygame.mixer.music.play()
                 if pygame.time.get_ticks() >= self.duration + self.time_start + self.config["timeadvence"]:
                     self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
+            elif self.state.peek() == STATE_LOADING:
+                pass
             else:
                 self.running = False
 
@@ -298,6 +300,7 @@ STATE_ENDGAME = 4
 STATE_CHOOSEFILE = 5
 STATE_EMPTYLIBRARY = 6
 STATE_FILENOTFOUND = 7
+STATE_LOADING = 8
 
 
 class StateMachine(object):
