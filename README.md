@@ -15,6 +15,7 @@ use bash script install.sh : ```bash ./install.sh```
 or 
 
 ```
+sudo apt-get install xclip
 conda env remove -n envReetm
 conda env create -f reetmEnv.yml
 ```
