@@ -12,10 +12,6 @@ import subprocess
 from pytube import YouTube
 
 
-
-
-
-
 class Beat(object):
     def __init__(self, time):
         self.time = time
@@ -158,6 +154,8 @@ class GameEngine(object):
         # margin time to determine score for a beat
 
         # determine the list we work on (kicks list, snare list... )depending on the key pressed
+
+
         if instrument_class == 0:
             work_list = self.arrayKick
         if instrument_class == 1:
@@ -234,11 +232,14 @@ class GameEngine(object):
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
                 self.instrumentNow(self.listHihat, 2)
+
                 if not self.passTimeMusic and pygame.time.get_ticks() >= self.config["timeadvence"] + self.time_start:
                     self.passTimeMusic = True
                     pygame.mixer.music.play()
                 if pygame.time.get_ticks() >= self.duration + self.time_start + self.config["timeadvence"]:
                     self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
+            elif self.state.peek() == STATE_LOADING:
+                pass
             else:
                 self.running = False
 
@@ -325,6 +326,7 @@ STATE_ENDGAME = 4
 STATE_CHOOSEFILE = 5
 STATE_EMPTYLIBRARY = 6
 STATE_FILENOTFOUND = 7
+STATE_LOADING = 8
 
 
 
