@@ -7,6 +7,34 @@ import json
 from json import JSONEncoder
 import shutil
 
+
+def simplification(instruments):
+    timerange = 0.125
+    for key, instrument in instruments.items():
+        simp = []
+        term = False
+        timeref = instrument[0]
+        iteration = 1
+        sum = timeref
+        for time in instrument[1:]:
+            if time > timeref + timerange:
+                print(time, sum / iteration)
+
+                simp.append(sum / iteration)
+                timeref = time
+                sum = time
+                iteration = 1
+                term = True
+            else:
+                term = False
+                sum += time
+                iteration += 1
+        if term:
+            simp.append(sum / iteration)
+        instruments[key] = np.array(simp)
+    return instruments
+
+
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
@@ -17,9 +45,10 @@ class NumpyArrayEncoder(JSONEncoder):
 
 class AutomaticBeats(object) :
 
-    def __init__(self, filepath, spleeter):
+    def __init__(self, filepath, spleeter=True,simplification=True ):
         self.file = filepath
         self.spleeter = spleeter
+        self.simplification  = simplification
         self.instruments_dictionary = None
 
 #creates preprocessed/music_name/drums.wav
@@ -61,13 +90,25 @@ class AutomaticBeats(object) :
 
 #returns a dictionnary instrument => array of floats
     def getinstruments(self):
+
         if self.instruments_dictionary is None:
+            #spleeter mode
             if self.spleeter:
                 self.preprocess()
                 file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
             else:
                 file = self.file
             self.instruments_dictionary = ADT([file])[0]
+            #simplifaction mode
+
+            if self.simplification:
+                for _, instrument in self.instruments_dictionary.items():
+                    for time in instrument:
+                        mask = (time - 1 <= instrument) & (instrument <= time + 1)
+                        moyenne = instrument[mask].mean()
+                        instrument = np.append(instrument[np.logical_not(mask)], moyenne)
+                    print(instrument)
+
         return self.instruments_dictionary
 
     def savejson(self):

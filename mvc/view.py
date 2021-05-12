@@ -12,6 +12,7 @@ CHECKLIGNE = 150
 screen_height = 720
 screen_width = 1280
 
+
 class GraphicalView(object):
     """
     Draws the model state onto the screen.
@@ -38,9 +39,8 @@ class GraphicalView(object):
         self.clock = None
         self.imgMenu = None
         self.smallfont = None
-        self.kick_state = []
-        self.snare_state = []
-        self.hihat_state = []
+        self.instruments_state = []
+
         self.message = None
         self.a_pressed = False
         self.z_pressed = False
@@ -56,15 +56,17 @@ class GraphicalView(object):
         self.BUTTONRESET = None
 
     # add a hit to the screen
-    def resetInstrument(self):
-        self.kick_state = []
-        self.snare_state = []
-        self.hihat_state = []
+    def resetInstruments(self):
+        self.instruments_state = []
 
-    def addInstrument(self, instrument, liste_instrument):
+    def addInstrument(self, instrument, numberclass):
+        if numberclass + 1 > len(self.instruments_state) :
+            for i in range(len(self.instruments_state), numberclass + 1):
+                self.instruments_state.append([])
         _, height = pygame.display.get_surface().get_size()
         instrument.setDistanceInPixel(height - self.model.config["checkligne"])
-        liste_instrument.append(instrument)
+        self.instruments_state[numberclass].append(instrument)
+        print(numberclass)
 
     def updateInstrument_state(self, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
@@ -81,22 +83,16 @@ class GraphicalView(object):
                 beat.time > pygame.time.get_ticks() - self.model.config["delta_meh"])
 
     # displays beats, their color depending on whether they are in the "excellent" range
-    def drawInstrument(self):
-        for b in self.kick_state:
-            color = (166, 89, 89)
-            if self.isexcellent(b):
-                color = (255, 0, 0)
-            pygame.draw.circle(self.screen, color, (400, b.position), 25)
-        for b in self.snare_state:
-            color = (89, 89, 166)
-            if self.isexcellent(b):
-                color = (0, 0, 255)
-            pygame.draw.circle(self.screen, color, (500, b.position), 25)
-        for b in self.hihat_state:
-            color = (166, 166, 89)
-            if self.isexcellent(b):
-                color = (255, 255, 0)
-            pygame.draw.circle(self.screen, color, (600, b.position), 25)
+    def drawInstruments(self):
+        colors = [(166, 89, 89), (89, 89, 166), (166, 166, 89)]
+        colorsExecellent = [(255, 0, 0), (0, 0, 255), (255, 255, 0)]
+        positions = [400, 500, 600]
+        for i in range(len(self.instruments_state)):
+            for beat in self.instruments_state[i]:
+                color = colors[i]
+                if self.isexcellent(beat):
+                    color = colorsExecellent[i]
+                pygame.draw.circle(self.screen, color, (positions[i], beat.position), 25)
 
     def displaySucces(self, succes):
         police = pygame.font.Font(None, 72)
@@ -140,7 +136,7 @@ class GraphicalView(object):
             if currentstate == STATE_LIBRARY:
                 self.renderlibrary()
             if currentstate == STATE_ENDGAME:
-                self.resetInstrument()
+                self.resetInstruments()
                 self.renderendgame()
             if currentstate == STATE_CHOOSEFILE:
                 self.renderChooseFile()
@@ -150,12 +146,7 @@ class GraphicalView(object):
                 self.renderfilenotfound()
             self.clock.tick(30)
         elif isinstance(event, BeatEvent):
-            if event.num == 0:
-                self.addInstrument(event.instrument, self.kick_state)
-            if event.num == 1:
-                self.addInstrument(event.instrument, self.snare_state)
-            if event.num == 2:
-                self.addInstrument(event.instrument, self.hihat_state)
+            self.addInstrument(event.instrument, event.num)
         elif isinstance(event, ScoreEvent):
             self.message = event.type_success
         elif isinstance(event, InputEvent):
@@ -165,23 +156,27 @@ class GraphicalView(object):
                 self.z_pressed = event.pressed
             if event.classe == 2:
                 self.e_pressed = event.pressed
-        elif isinstance(event,newBestScoreEvent):
+        elif isinstance(event, newBestScoreEvent):
             self.rendernewbestscore(event.newbestscore)
+
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
     def drawCheckCircles(self, height):
         color = (135, 206, 235)
 
         if self.a_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0), [400, height - self.model.config["checkligne"]], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0),
+                               [400, height - self.model.config["checkligne"]], 31, 6)
         else:
             pygame.draw.circle(self.screen, color, [400, height - self.model.config["checkligne"]], 25, 1)
         if self.z_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255), [500, height - self.model.config["checkligne"]], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255),
+                               [500, height - self.model.config["checkligne"]], 31, 6)
         else:
             pygame.draw.circle(self.screen, color, [500, height - self.model.config["checkligne"]], 25, 1)
         if self.e_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0), [600, height - self.model.config["checkligne"]], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0),
+                               [600, height - self.model.config["checkligne"]], 31, 6)
         else:
             pygame.draw.circle(self.screen, color, [600, height - self.model.config["checkligne"]], 25, 1)
 
@@ -209,10 +204,10 @@ class GraphicalView(object):
         # Initializing surface
         # print(pygame.time.get_ticks())
         # print(pygame.time.Clock())
-        self.updateInstrument_state(self.kick_state)
-        self.updateInstrument_state(self.snare_state)
-        self.updateInstrument_state(self.hihat_state)
-        self.drawInstrument()
+        for instrument in self.instruments_state:
+            self.updateInstrument_state(instrument)
+
+        self.drawInstruments()
         if self.message is not None:
             self.displaySucces(self.message)
         self.displayScore()
@@ -306,8 +301,10 @@ class GraphicalView(object):
         y = (hs / 2) - (h / 2)
         window.geometry('%dx%d+%d+%d' % (w, h, x, y))
         window.withdraw()
-        infobox = tkinter.messagebox.showinfo(parent=window, title="Congrats !", message="New best score : " + str(score) +" !")
+        infobox = tkinter.messagebox.showinfo(parent=window, title="Congrats !",
+                                              message="New best score : " + str(score) + " !")
         window.destroy()
+
     def initialize(self):
         """
         Set up the pygame graphical display and loads graphical resources.
@@ -322,35 +319,43 @@ class GraphicalView(object):
                                                      label="Choose file",
                                                      color=(255, 0, 0),
                                                      colorLabel=(0, 0, 0),
-                                                     placeHolder= pygameInterface.StyleButton(480, 650, 191, 64, label="Choose file", color=(0, 0, 0),
-                                                                                              colorLabel=(255, 0, 0))
+                                                     placeHolder=pygameInterface.StyleButton(480, 650, 191, 64,
+                                                                                             label="Choose file",
+                                                                                             color=(0, 0, 0),
+                                                                                             colorLabel=(255, 0, 0))
                                                      )
 
         self.buttonMenuReturn = pygameInterface.Button(600, 550, 191, 64,
                                                        label="Continue",
                                                        color=(255, 0, 0),
                                                        colorLabel=(0, 0, 0),
-                                                       placeHolder= pygameInterface.StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
-                                                                                                colorLabel=(255, 0, 0))
+                                                       placeHolder=pygameInterface.StyleButton(600, 550, 191, 64,
+                                                                                               label="Continue",
+                                                                                               color=(0, 0, 0),
+                                                                                               colorLabel=(255, 0, 0))
                                                        )
 
-        self.buttonLibrary = pygameInterface.Button(480,380, 191, 64,
-                                       label="Library",
-                                       color=(255, 0, 0),
-                                       colorLabel=(0, 0, 0),
-                                       placeHolder=pygameInterface.StyleButton(480,380, 191, 64, label="Library", color=(0, 0, 0),
-                                                               colorLabel=(255, 0, 0))
-                                       )
+        self.buttonLibrary = pygameInterface.Button(480, 380, 191, 64,
+                                                    label="Library",
+                                                    color=(255, 0, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(480, 380, 191, 64,
+                                                                                            label="Library",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(255, 0, 0))
+                                                    )
 
         self.YOUTUBELINKTEXTBOX = pygameInterface.Textbox(380, 380, 500, 50)
 
         self.BUTTONYOUTUBELINK = pygameInterface.Button(390, 900, 115, 30,
-                                   image="assets/DownloadButton.jpg",
-                                   placeHolder=pygameInterface.StyleButton(390, 900, 115, 30, image="assets/DownloadButtonSelect.jpg"))
+                                                        image="assets/DownloadButton.jpg",
+                                                        placeHolder=pygameInterface.StyleButton(390, 900, 115, 30,
+                                                                                                image="assets/DownloadButtonSelect.jpg"))
 
         self.BUTTONRESET = pygameInterface.Button(390, 1025, 115, 30,
-                             image="assets/ClearButton.jpg",
-                             placeHolder=pygameInterface.StyleButton(390, 1025, 115, 30, image="assets/ClearButtonSelect.jpg"))
+                                                  image="assets/ClearButton.jpg",
+                                                  placeHolder=pygameInterface.StyleButton(390, 1025, 115, 30,
+                                                                                          image="assets/ClearButtonSelect.jpg"))
 
         # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
