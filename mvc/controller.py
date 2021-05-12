@@ -3,13 +3,9 @@ import os
 import pyperclip
 from mvc.eventmanager import *
 from mvc import model
-from mvc import view
 
-# keys used ingame
-KeysListold = model.config["keyslist"]
-KeysList = []
-for elem in KeysListold:
-    KeysList.append(eval(elem))
+
+
 
 class Keyboard(object):
     """
@@ -26,6 +22,11 @@ class Keyboard(object):
         self.model = engine
         self.view = graphic
         self.listEvent = None
+        # keys used ingame
+        KeysListold = self.model.config["keyslist"]
+        self.KeysList = []
+        for elem in KeysListold:
+            self.KeysList.append(eval(elem))
 
     def notify(self, event):
         """
@@ -101,14 +102,14 @@ class Keyboard(object):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.evManager.Post(QuitEvent())
-            if event.key in KeysList:
-                newInputEvent = InputEvent(KeysList.index(event.key), True)
+            if event.key in self.KeysList:
+                newInputEvent = InputEvent(self.KeysList.index(event.key), True)
                 self.evManager.Post(newInputEvent)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_ESCAPE:
                 self.evManager.Post(QuitEvent())
-            if event.key in KeysList:
-                newInputEvent = InputEvent(KeysList.index(event.key), False)
+            if event.key in self.KeysList:
+                newInputEvent = InputEvent(self.KeysList.index(event.key), False)
                 self.evManager.Post(newInputEvent)
 
 

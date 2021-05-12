@@ -2,7 +2,8 @@ import tkinter.messagebox
 
 from mvc.eventmanager import *
 from mvc.model import *
-import mvc.model
+from interface import pygameInterface
+from interface import tkinterInterface
 import tkinter
 import tkinter.filedialog
 
@@ -28,6 +29,7 @@ class GraphicalView(object):
         clock (pygame.time.Clock): keeps the fps constant.
         smallfont (pygame.Font): a small font.
         """
+
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.model = model
@@ -61,7 +63,7 @@ class GraphicalView(object):
 
     def addInstrument(self, instrument, liste_instrument):
         _, height = pygame.display.get_surface().get_size()
-        instrument.setDistanceInPixel(height - mvc.model.config["checkligne"])
+        instrument.setDistanceInPixel(height - self.model.config["checkligne"])
         liste_instrument.append(instrument)
 
     def updateInstrument_state(self, liste_instrument):
@@ -75,8 +77,8 @@ class GraphicalView(object):
                 liste_instrument.pop(i)
 
     def isexcellent(self, beat):
-        return (beat.time < pygame.time.get_ticks() + mvc.model.config["delta_excellent"]) & (
-                beat.time > pygame.time.get_ticks() - mvc.model.config["delta_meh"])
+        return (beat.time < pygame.time.get_ticks() + self.model.config["delta_excellent"]) & (
+                beat.time > pygame.time.get_ticks() - self.model.config["delta_meh"])
 
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstrument(self):
@@ -171,17 +173,17 @@ class GraphicalView(object):
         color = (135, 206, 235)
 
         if self.a_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0), [400, height - mvc.model.config["checkligne"]], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0), [400, height - self.model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [400, height - mvc.model.config["checkligne"]], 25, 1)
+            pygame.draw.circle(self.screen, color, [400, height - self.model.config["checkligne"]], 25, 1)
         if self.z_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255), [500, height - model.config["checkligne"]], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255), [500, height - self.model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [500, height - mvc.model.config["checkligne"]], 25, 1)
+            pygame.draw.circle(self.screen, color, [500, height - self.model.config["checkligne"]], 25, 1)
         if self.e_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0), [600, height - model.config["checkligne"]], 31, 6)
+            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0), [600, height - self.model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [600, height - mvc.model.config["checkligne"]], 25, 1)
+            pygame.draw.circle(self.screen, color, [600, height - self.model.config["checkligne"]], 25, 1)
 
     def drawCheckLetters(self, height):
         color = (135, 206, 235)
@@ -191,9 +193,9 @@ class GraphicalView(object):
         letter_z = police.render("Z", True, pygame.Color(0, 0, 255))
         letter_e = police.render("E", True, pygame.Color(255, 255, 0))
 
-        self.screen.blit(letter_a, [385, height - mvc.model.config["checkligne"] + 25])
-        self.screen.blit(letter_z, [485, height - mvc.model.config["checkligne"] + 25])
-        self.screen.blit(letter_e, [585, height - mvc.model.config["checkligne"] + 25])
+        self.screen.blit(letter_a, [385, height - self.model.config["checkligne"] + 25])
+        self.screen.blit(letter_z, [485, height - self.model.config["checkligne"] + 25])
+        self.screen.blit(letter_e, [585, height - self.model.config["checkligne"] + 25])
 
     def renderplay(self):
         """
@@ -249,7 +251,7 @@ class GraphicalView(object):
         top.destroy()
 
     def renderlibrary(self):
-        self.songs_list = ComboBox()
+        self.songs_list = tkinterInterface.ComboBox(title="Library")
         self.songs_list.window.mainloop()
 
     def renderemptylibrary(self):
@@ -315,39 +317,40 @@ class GraphicalView(object):
         pygame.display.set_caption('Reetm')
         self.screen = pygame.display.set_mode((screen_width, screen_height))
         self.clock = pygame.time.Clock()
-        self.buttonMenuPlay = Button(480,650, 191, 64,
-                                    label="Choose file",
-                                    color=(255, 0, 0),
-                                    colorLabel=(0, 0, 0),
-                                    placeHolder=StyleButton(480,650, 191, 64, label="Choose file", color=(0, 0, 0),
-                                                            colorLabel=(255, 0, 0))
-                                    )
 
-        self.buttonMenuReturn = Button(600, 550, 191, 64,
-                                       label="Continue",
-                                       color=(255, 0, 0),
-                                       colorLabel=(0, 0, 0),
-                                       placeHolder=StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
-                                                               colorLabel=(255, 0, 0))
-                                       )
+        self.buttonMenuPlay = pygameInterface.Button(480, 650, 191, 64,
+                                                     label="Choose file",
+                                                     color=(255, 0, 0),
+                                                     colorLabel=(0, 0, 0),
+                                                     placeHolder= pygameInterface.StyleButton(480, 650, 191, 64, label="Choose file", color=(0, 0, 0),
+                                                                                              colorLabel=(255, 0, 0))
+                                                     )
 
-        self.buttonLibrary = Button(480,380, 191, 64,
+        self.buttonMenuReturn = pygameInterface.Button(600, 550, 191, 64,
+                                                       label="Continue",
+                                                       color=(255, 0, 0),
+                                                       colorLabel=(0, 0, 0),
+                                                       placeHolder= pygameInterface.StyleButton(600, 550, 191, 64, label="Continue", color=(0, 0, 0),
+                                                                                                colorLabel=(255, 0, 0))
+                                                       )
+
+        self.buttonLibrary = pygameInterface.Button(480,380, 191, 64,
                                        label="Library",
                                        color=(255, 0, 0),
                                        colorLabel=(0, 0, 0),
-                                       placeHolder=StyleButton(480,380, 191, 64, label="Library", color=(0, 0, 0),
+                                       placeHolder=pygameInterface.StyleButton(480,380, 191, 64, label="Library", color=(0, 0, 0),
                                                                colorLabel=(255, 0, 0))
                                        )
 
-        self.YOUTUBELINKTEXTBOX = Textbox(380, 380, 500, 50)
+        self.YOUTUBELINKTEXTBOX = pygameInterface.Textbox(380, 380, 500, 50)
 
-        self.BUTTONYOUTUBELINK = Button(390, 900, 115, 30,
+        self.BUTTONYOUTUBELINK = pygameInterface.Button(390, 900, 115, 30,
                                    image="assets/DownloadButton.jpg",
-                                   placeHolder=StyleButton(390, 900, 115, 30, image="assets/DownloadButtonSelect.jpg"))
+                                   placeHolder=pygameInterface.StyleButton(390, 900, 115, 30, image="assets/DownloadButtonSelect.jpg"))
 
-        self.BUTTONRESET = Button(390, 1025, 115, 30,
+        self.BUTTONRESET = pygameInterface.Button(390, 1025, 115, 30,
                              image="assets/ClearButton.jpg",
-                             placeHolder=StyleButton(390, 1025, 115, 30, image="assets/ClearButtonSelect.jpg"))
+                             placeHolder=pygameInterface.StyleButton(390, 1025, 115, 30, image="assets/ClearButtonSelect.jpg"))
 
         # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)

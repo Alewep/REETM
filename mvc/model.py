@@ -1,11 +1,9 @@
 from mvc.eventmanager import *
 from addons.AutomaticBeats import AutomaticBeats
 from addons import library
-import tkinter
-import tkinter.filedialog
+
+
 import pygame
-from tkinter import *
-from tkinter.ttk import *
 import numpy as np
 import os
 import json
@@ -13,10 +11,9 @@ import wget
 import subprocess
 from pytube import YouTube
 
-# constants used to determine the score
 
-with open('config.json') as json_data:
-    config = json.load(json_data)
+
+
 
 
 class Beat(object):
@@ -44,159 +41,17 @@ class Beat(object):
         self.position = durationLife * self.speed()
 
 
-pygame.font.init()
-
-
-class StyleButton(object):
-    def __init__(self, left, top, width, height, label=None, image=None,
-                 legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
-                 fontLegend=pygame.font.SysFont('Arial', 25)):
-
-        self.left = left
-        self.top = top
-        self.width = width
-        self.height = height
-
-        self.image = image
-        self.label = label
-        self.legend = legend
-        self.color = color
-        self.colorLabel = colorLabel
-        self.fontLabel = fontLabel
-        self.fontLegend = fontLegend
-
-    def _surface(self):
-        return pygame.Surface((self.width, self.height))
-
-    def _rectangle(self):
-        return self._surface().get_rect(topleft=(self.top, self.left))
-
-    def draw(self, screen):
-        surfaceButton = self._surface()
-        if self.image is not None:
-            surfaceButton = pygame.image.load(self.image).convert_alpha()
-        else:
-            pygame.Surface.fill(surfaceButton, self.color)
-
-        if self.label is not None:
-            labelSurface = self.fontLabel.render(self.label, True, self.colorLabel)
-            labelSurface_rect = labelSurface.get_rect(center=(self.width / 2, self.height / 2))
-            surfaceButton.blit(labelSurface, labelSurface_rect)
-
-        screen.blit(surfaceButton, (self.top, self.left))
-
-
-class Button(StyleButton):
-    def __init__(self, left, top, width, height, label=None, image=None,
-                 legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
-                 fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None):
-
-        super().__init__(left, top, width, height, label, image, legend, color, colorLabel, fontLabel, fontLegend)
-        self.placeHolder = placeHolder
-
-    def cliked(self, pygameEventListener):
-        for event in pygameEventListener:
-            if event.type == pygame.MOUSEBUTTONUP:
-                return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
-        return False
-
-    def draw(self, screen):
-        if self.placeHolder is not None and pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos()):
-            self.placeHolder.draw(screen)
-        else:
-            super().draw(screen)
-
-
-class Textbox():
-    def __init__(self, x, y, width, height, fontLabel=pygame.font.Font(None, 30)):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.fontLabel = fontLabel
-        self.text = 'test'
-        self.target = 0
-        self.fontLabel = pygame.font.Font(None, 25)
-
-    def text_typing(self, add):
-        self.text += add
-
-    def text_backspace(self):
-        self.text = self.text[:-1]
-
-    def reset(self):
-        self.text = ''
-
-    def draw(self, screen):
-        surface = self._surface()
-        labelSurface = self.fontLabel.render(self.text, True, (255, 255, 255))
-        labelSurface_rect = labelSurface.get_rect(center=(self.width / 2, self.height / 2))
-        surface.blit(labelSurface, labelSurface_rect)
-
-        screen.blit(surface, (self.y, self.x))
-
-    def getText(self):
-        return self.text
-
-    def _surface(self):
-        return pygame.Surface((self.width, self.height))
-
-    def _rectangle(self):
-        return self._surface().get_rect(topleft=(self.x, self.y))
-
-    def clicked(self, pygameEventListener):
-        for event in pygameEventListener:
-            if event.type == pygame.MOUSEBUTTONUP:
-                return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
-        return False
-
-
-class ComboBox(object):
-
-    def __init__(self):
-        self.window = Tk()  # create a Tk root window
-
-        w = 300  # width for the Tk root
-        h = 400  # height for the Tk root
-
-        # get screen width and height
-        ws = self.window.winfo_screenwidth()  # width of the screen
-        hs = self.window.winfo_screenheight()  # height of the screen
-
-        # calculate x and y coordinates for the Tk root window
-        x = (ws / 2) - (w / 2)
-        y = (hs / 2) - (h / 2)
-
-        # set the dimensions of the screen
-        # and where it is placed
-        self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
-        self.stockSongs = library.getFiles('preprocessed')
-        self.listeSongs = Combobox(self.window, values=self.stockSongs, state='readonly')
-        self.listeSongs.pack()
-        self.buttonconfirm = tkinter.Button(text="confirmation")
-        self.buttonconfirm.pack()
-        self.buttonconfirm.config(command=self.confirmation)
-        self.clicked = False
-        self.clikedquit = False
-        self.chosenfile = None
-
-        self.window.protocol('WM_DELETE_WINDOW', self.quit)
-
-    def quit(self):
-        self.window.destroy()
-        self.clikedquit = True
-
-    def confirmation(self):
-        self.chosenfile = self.listeSongs.get()
-        self.clicked = True
-        self.window.destroy()
-
-
 class GameEngine(object):
 
     def __init__(self, evManager):
 
+        #config
+
+        with open('config.json') as json_data:
+            self.config = json.load(json_data)
+
         # variable for game state
+
         self.time_start = None
         self.file = None
         self.arrayKick = None
@@ -235,37 +90,29 @@ class GameEngine(object):
 
     # fait tout à partir du link (nom de méthode à modifier)
     def process(self, yt_link):
-        yt = YouTube(yt_link)
+        try:
+            yt = YouTube(yt_link)
 
-        # create a song folder if it doesn't exist yet
-        os.makedirs("song", exist_ok=True)
+            # create a song folder if it doesn't exist yet
+            os.makedirs("song", exist_ok=True)
 
-        # replace some character that will cause some issues
-        yt.title = yt.title.replace("|", "-")
-        yt.title = yt.title.replace(":", "")
-        yt.title = yt.title.replace("/", "")
-        # create a folder from the song title if it doesn't exist yet in the song folder
-        os.makedirs("song/" + yt.title, exist_ok=True)
-        wget.download(yt.thumbnail_url, out="song/" + yt.title)
-        print(yt.video_id)
-        self.DL_mp4(yt)
-        self.DL_mp4_nosound(yt)
-        self.mp4ToWav(yt)
-        self.file = "song/" + yt.title + "/" + yt.title + ".wav"
-        self.evManager.Post(StateChangeEvent(STATE_PLAY))
-        self.gamescore = 0
+            # replace some character that will cause some issues
+            yt.title = yt.title.replace("|", "-")
+            yt.title = yt.title.replace(":", "")
+            yt.title = yt.title.replace("/", "")
+            # create a folder from the song title if it doesn't exist yet in the song folder
+            os.makedirs("song/" + yt.title, exist_ok=True)
+            wget.download(yt.thumbnail_url, out="song/" + yt.title)
+            print(yt.video_id)
+            self.DL_mp4(yt)
+            self.DL_mp4_nosound(yt)
+            self.mp4ToWav(yt)
+            self.file = "song/" + yt.title + "/" + yt.title + ".wav"
+            self.evManager.Post(StateChangeEvent(STATE_PLAY))
+            self.gamescore = 0
+        except :
+            self.evManager.Post(StateChangeEvent(STATE_MENU))
 
-    def buttonPlay(self):
-        top = tkinter.Tk()
-        top.withdraw()  # hide window
-        self.file = tkinter.filedialog.askopenfilename(parent=top, title="Select a Music in wav format",
-                                                       filetypes=(("wav files",
-                                                                   "*.wav*"),
-                                                                  ("all files",
-                                                                   "*.*")))
-        top.destroy()
-        self.evManager.Post(StateChangeEvent(STATE_PLAY))
-        self.gamescore = 0
 
     def buttonReturn(self):
         self.evManager.Post(StateChangeEvent(STATE_MENU))
@@ -300,7 +147,7 @@ class GameEngine(object):
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
     def instrumentNow(self, liste_beat, num_classe):
-        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - config["timeadvence"])):
+        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - self.config["timeadvence"])):
             newBeatEvent = BeatEvent(Beat(liste_beat[0]), num_classe)
             self.evManager.Post(newBeatEvent)
             liste_beat.pop(0)
@@ -320,28 +167,28 @@ class GameEngine(object):
 
         beat_to_delete = None
 
-        list_bad = work_list[(work_list > beat_time - config["delta_bad"]) & (work_list < beat_time + config["delta_bad"])]
+        list_bad = work_list[(work_list > beat_time - self.config["delta_bad"]) & (work_list < beat_time + self.config["delta_bad"])]
         success_class = 'fail'
-        score_to_add = config["score_fail"]
+        score_to_add = self.config["score_fail"]
         if len(list_bad) > 0:
-            list_meh = work_list[(work_list > beat_time - config["delta_meh"]) & (work_list < beat_time + config["delta_meh"])]
+            list_meh = work_list[(work_list > beat_time - self.config["delta_meh"]) & (work_list < beat_time + self.config["delta_meh"])]
             success_class = 'bad'
-            score_to_add = config["score_bad"]
+            score_to_add = self.config["score_bad"]
             beat_to_delete = list_bad[0]
             if len(list_meh) > 0:
-                list_good = work_list[(work_list > beat_time - config["delta_good"]) & (work_list < beat_time + config["delta_good"])]
+                list_good = work_list[(work_list > beat_time - self.config["delta_good"]) & (work_list < beat_time + self.config["delta_good"])]
                 success_class = 'meh'
-                score_to_add = config["score_meh"]
+                score_to_add = self.config["score_meh"]
                 beat_to_delete = list_meh[0]
                 if len(list_good) > 0:
                     list_excellent = work_list[
-                        (work_list > beat_time - config["delta_excellent"]) & (work_list < beat_time + config["delta_excellent"])]
+                        (work_list > beat_time - self.config["delta_excellent"]) & (work_list < beat_time + self.config["delta_excellent"])]
                     success_class = 'good'
-                    score_to_add = config["score_good"]
+                    score_to_add = self.config["score_good"]
                     beat_to_delete = list_good[0]
                     if len(list_excellent) > 0:
                         success_class = 'excellent'
-                        score_to_add = config["score_excellent"]
+                        score_to_add = self.config["score_excellent"]
                         beat_to_delete = list_excellent[0]
 
         self.gamescore += score_to_add
@@ -350,7 +197,7 @@ class GameEngine(object):
         return success_class
 
     def savebestscore(self):
-        musicfile = AutomaticBeats(self.file,config["spleeter"])
+        musicfile = AutomaticBeats(self.file,self.config["spleeter"])
         bestscorefilepath = "preprocessed/"+musicfile.getmusicname()+"/bestscore.csv"
         if not os.path.exists(bestscorefilepath):
             array_score = np.around(np.array([self.gamescore]), decimals=2)
@@ -387,10 +234,10 @@ class GameEngine(object):
                 self.instrumentNow(self.listKick, 0)
                 self.instrumentNow(self.listSnare, 1)
                 self.instrumentNow(self.listHihat, 2)
-                if not self.passTimeMusic and pygame.time.get_ticks() >= config["timeadvence"] + self.time_start:
+                if not self.passTimeMusic and pygame.time.get_ticks() >= self.config["timeadvence"] + self.time_start:
                     self.passTimeMusic = True
                     pygame.mixer.music.play()
-                if pygame.time.get_ticks() >= self.duration + self.time_start + config["timeadvence"]:
+                if pygame.time.get_ticks() >= self.duration + self.time_start + self.config["timeadvence"]:
                     self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
             else:
                 self.running = False
@@ -412,14 +259,14 @@ class GameEngine(object):
         elif self.state.peek() == STATE_PLAY:
             if self.file is not None:
                 self.passTimeMusic = False
-                musicfile = AutomaticBeats(self.file, config["spleeter"])
+                musicfile = AutomaticBeats(self.file, self.config["spleeter"])
                 instruments = musicfile.getinstruments()
                 musicfile.savejson()
                 musicfile.copy()
 
-                self.arrayKick = instruments["Kick"] * 1000 + config["timeadvence"]
-                self.arraySnare = instruments["Snare"] * 1000 + config["timeadvence"]
-                self.arrayHihat = instruments["Hihat"] * 1000 + config["timeadvence"]
+                self.arrayKick = instruments["Kick"] * 1000 + self.config["timeadvence"]
+                self.arraySnare = instruments["Snare"] * 1000 + self.config["timeadvence"]
+                self.arrayHihat = instruments["Hihat"] * 1000 + self.config["timeadvence"]
 
                 pygame.mixer.init()
                 pygame.mixer.music.load(self.file)
@@ -437,8 +284,8 @@ class GameEngine(object):
             if self.musicnamelist is not None:
                 self.passTimeMusic = False
                 self.file = "preprocessed/"+self.musicnamelist+"/"+self.musicnamelist+".wav"
-                musicfile = AutomaticBeats(self.file,config["spleeter"])
-                if config["spleeter"]:
+                musicfile = AutomaticBeats(self.file,self.config["spleeter"])
+                if self.config["spleeter"]:
                     path = "preprocessed/"+self.musicnamelist+"/instrumentswithspleeter.json"
                     if os.path.exists(path):
                         instruments = path
@@ -453,9 +300,9 @@ class GameEngine(object):
                         self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
                         return
                 dict = library.json_to_dict(instruments)
-                self.arrayKick = dict["Kick"] * 1000 + config["timeadvence"]
-                self.arraySnare = dict["Snare"] * 1000 + config["timeadvence"]
-                self.arrayHihat = dict["Hihat"] * 1000 + config["timeadvence"]
+                self.arrayKick = dict["Kick"] * 1000 + self.config["timeadvence"]
+                self.arraySnare = dict["Snare"] * 1000 + self.config["timeadvence"]
+                self.arrayHihat = dict["Hihat"] * 1000 + self.config["timeadvence"]
 
                 pygame.mixer.init()
                 pygame.mixer.music.load(self.file)
