@@ -278,17 +278,31 @@ class GameEngine(object):
             if self.config["simplification"]:
                 dictInstruments = simplification(dictInstruments)
 
-            self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
-                                     dictInstruments.items()]
+                self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                         dictInstruments.items()]
+
+            elif self.config['difficulty'] == 'medium':
+
+                arraykicksnare = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                  dictInstruments.items() if (instrument[0] in ['Kick','Snare'])]
+                arraykicksnare = np.concatenate([arraykicksnare[0],arraykicksnare[1]])
+
+                self.arrayInstruments = [np.sort(arraykicksnare)] + [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                  dictInstruments.items() if (instrument[0] == 'Hihat')]
+
+            elif self.config['difficulty'] == 'easy':
+                arrayallinstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                         dictInstruments.items()]
+                self.arrayInstruments = np.sort([item for sublist in arrayallinstruments for item in sublist])
+
 
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
             self.duration = musicfile.getduration() * 1000  # ms
             self.gamescore = 0
             self.time_start = pygame.time.get_ticks()
-
-
-            self.arrayInstruments = [instrument + pygame.time.get_ticks() for instrument in self.arrayInstruments]
+            print(self.arrayInstruments)
+            self.arrayInstruments = [(instrument + pygame.time.get_ticks()) for instrument in self.arrayInstruments]
             self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
 
 
