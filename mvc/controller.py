@@ -27,6 +27,7 @@ class Keyboard(object):
         self.KeysList = []
         for elem in KeysListold:
             self.KeysList.append(eval(elem))
+        self.KeysList = self.KeysList[0:self.model.config['difficulty']]
 
     def notify(self, event):
         """
@@ -90,7 +91,6 @@ class Keyboard(object):
                             self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
                         else:
                             self.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
-                            print(self.view.YOUTUBELINKTEXTBOX.text)
 
         if self.view.BUTTONYOUTUBELINK.cliked(self.listEvent):
             self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())

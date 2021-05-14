@@ -54,6 +54,8 @@ class GraphicalView(object):
         self.cooldown = 1000
         self.last = pygame.time.get_ticks()
 
+        self.positions = self.positions_difficuly()
+
         self.YOUTUBELINKTEXTBOX = None
         self.BUTTONYOUTUBELINK = None
         self.BUTTONRESET = None
@@ -74,7 +76,6 @@ class GraphicalView(object):
         _, height = pygame.display.get_surface().get_size()
         for i in range(len(liste_instrument)):
             liste_instrument[i].updatePosition()
-            # print(self.beats_state[i].getPosition())
         listTemp = liste_instrument.copy()
         for i in range(len(listTemp)):
             if listTemp[i].position > height:
@@ -84,17 +85,26 @@ class GraphicalView(object):
         return (beat.time < pygame.time.get_ticks() + self.model.config["delta_excellent"]) & (
                 beat.time > pygame.time.get_ticks() - self.model.config["delta_meh"])
 
+    def positions_difficuly(self):
+        middle = screen_width /2
+        if self.model.config['difficulty'] == 1:
+            return [middle]
+        elif self.model.config['difficulty'] == 2:
+            return [middle - 100, middle + 100]
+        elif self.model.config['difficulty'] == 3:
+            return [middle - 100, middle, middle + 100]
+
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstruments(self):
         colors = [(166, 89, 89), (89, 89, 166), (166, 166, 89)]
         colorsExecellent = [(255, 0, 0), (0, 0, 255), (255, 255, 0)]
-        positions = [400, 500, 600]
+
         for i in range(len(self.instruments_state)):
             for beat in self.instruments_state[i]:
                 color = colors[i]
                 if self.isexcellent(beat):
                     color = colorsExecellent[i]
-                pygame.draw.circle(self.screen, color, (positions[i], beat.position), 25)
+                pygame.draw.circle(self.screen, color, (self.positions[i], beat.position), 25)
 
     def displaySucces(self, succes):
         police = pygame.font.Font(None, 72)
@@ -170,19 +180,24 @@ class GraphicalView(object):
 
         if self.a_pressed:
             pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0),
-                               [400, height - self.model.config["checkligne"]], 31, 6)
+                               [self.positions[0], height - self.model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [400, height - self.model.config["checkligne"]], 25, 1)
-        if self.z_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255),
-                               [500, height - self.model.config["checkligne"]], 31, 6)
-        else:
-            pygame.draw.circle(self.screen, color, [500, height - self.model.config["checkligne"]], 25, 1)
-        if self.e_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0),
-                               [600, height - self.model.config["checkligne"]], 31, 6)
-        else:
-            pygame.draw.circle(self.screen, color, [600, height - self.model.config["checkligne"]], 25, 1)
+            pygame.draw.circle(self.screen, color, [self.positions[0], height - self.model.config["checkligne"]], 25, 1)
+
+        if self.model.config['difficulty'] in [2, 3]:
+            if self.z_pressed:
+                pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255),
+                                   [self.positions[1], height - self.model.config["checkligne"]], 31, 6)
+            else:
+                pygame.draw.circle(self.screen, color, [self.positions[1], height - self.model.config["checkligne"]], 25, 1)
+
+            if self.model.config['difficulty'] == 3:
+                if self.e_pressed:
+                    pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0),
+                                       [self.positions[2], height - self.model.config["checkligne"]], 31, 6)
+                else:
+                    pygame.draw.circle(self.screen, color, [self.positions[2], height - self.model.config["checkligne"]], 25, 1)
+
 
     def drawCheckLetters(self, height):
         color = (135, 206, 235)
@@ -192,9 +207,13 @@ class GraphicalView(object):
         letter_z = police.render("Z", True, pygame.Color(0, 0, 255))
         letter_e = police.render("E", True, pygame.Color(255, 255, 0))
 
-        self.screen.blit(letter_a, [385, height - self.model.config["checkligne"] + 25])
-        self.screen.blit(letter_z, [485, height - self.model.config["checkligne"] + 25])
-        self.screen.blit(letter_e, [585, height - self.model.config["checkligne"] + 25])
+        self.screen.blit(letter_a, [self.positions[0] - 15, height - self.model.config["checkligne"] + 25])
+
+        if self.model.config['difficulty'] in [2, 3]:
+            self.screen.blit(letter_z, [self.positions[1] - 15, height - self.model.config["checkligne"] + 25])
+
+            if self.model.config['difficulty'] == 3:
+                self.screen.blit(letter_e, [self.positions[2] - 15, height - self.model.config["checkligne"] + 25])
 
     def renderplay(self):
         """
@@ -204,10 +223,6 @@ class GraphicalView(object):
         width, height = pygame.display.get_surface().get_size()
         # clear display
         self.screen.fill((0, 0, 0))
-        # draw some words on the screen
-        # Initializing surface
-        # print(pygame.time.get_ticks())
-        # print(pygame.time.Clock())
         for instrument in self.instruments_state:
             self.updateInstrument_state(instrument)
 
@@ -393,6 +408,5 @@ class GraphicalView(object):
                                                   placeHolder=pygameInterface.StyleButton(390, 1025, 115, 30,
                                                                                           image="assets/ClearButtonSelect.jpg"))
 
-        # print(self.clock)
         self.smallfont = pygame.font.Font(None, 40)
         self.isinitialized = True

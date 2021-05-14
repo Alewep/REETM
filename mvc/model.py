@@ -95,7 +95,7 @@ class GameEngine(object):
             # create a folder from the song title if it doesn't exist yet in the song folder
             os.makedirs("song/" + yt.title, exist_ok=True)
             wget.download(yt.thumbnail_url, out="song/" + yt.title)
-            print(yt.video_id)
+
             self.DL_mp4(yt)
             self.DL_mp4_nosound(yt)
             self.mp4ToWav(yt)
@@ -146,10 +146,6 @@ class GameEngine(object):
     def inputVerifBeat(self, beat_time,
                        instrument_class):  # update score depending and returns the type of success (fail, bad, meh, good, excellent)
 
-        # margin time to determine score for a beat
-
-        # determine the list we work on (kicks list, snare list... )depending on the key pressed
-
         work_list = self.arrayInstruments[instrument_class]
 
         beat_to_delete = None
@@ -183,6 +179,7 @@ class GameEngine(object):
                         beat_to_delete = list_excellent[0]
 
         self.gamescore += score_to_add
+
         if beat_to_delete is not None:
             work_list = np.delete(work_list, np.where(work_list == beat_to_delete))
         return success_class
@@ -278,10 +275,12 @@ class GameEngine(object):
             if self.config["simplification"]:
                 dictInstruments = simplification(dictInstruments)
 
+
+            if self.config['difficulty'] == 3 :
                 self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                          dictInstruments.items()]
 
-            elif self.config['difficulty'] == 'medium':
+            elif self.config['difficulty'] == 2:
 
                 arraykicksnare = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                   dictInstruments.items() if (instrument[0] in ['Kick','Snare'])]
@@ -290,18 +289,17 @@ class GameEngine(object):
                 self.arrayInstruments = [np.sort(arraykicksnare)] + [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                   dictInstruments.items() if (instrument[0] == 'Hihat')]
 
-            elif self.config['difficulty'] == 'easy':
+            elif self.config['difficulty'] == 1:
                 arrayallinstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                          dictInstruments.items()]
-                self.arrayInstruments = np.sort([item for sublist in arrayallinstruments for item in sublist])
-
+                arrayallinstruments = np.concatenate([arrayallinstruments[0],arrayallinstruments[1],arrayallinstruments[2]])
+                self.arrayInstruments = [np.sort(arrayallinstruments)]
 
             pygame.mixer.init()
             pygame.mixer.music.load(self.file)
             self.duration = musicfile.getduration() * 1000  # ms
             self.gamescore = 0
             self.time_start = pygame.time.get_ticks()
-            print(self.arrayInstruments)
             self.arrayInstruments = [(instrument + pygame.time.get_ticks()) for instrument in self.arrayInstruments]
             self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
 
