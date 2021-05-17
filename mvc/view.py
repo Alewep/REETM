@@ -94,6 +94,7 @@ class GraphicalView(object):
         elif self.model.config['difficulty'] == 3:
             return [middle - 100, middle, middle + 100]
 
+
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstruments(self):
         colors = [(166, 89, 89), (89, 89, 166), (166, 166, 89)]
@@ -128,6 +129,28 @@ class GraphicalView(object):
         self.screen.blit(score, [screen_width - score.get_width(), 5])
         pygame.display.flip()
 
+    def displayBestScore(self):
+        police = pygame.font.Font(None, 50)
+        best_score_txt = "Best Score : " + (str(self.model.bestscore) if self.model.bestscore is not None else "N/A")
+        score = police.render(best_score_txt, True, pygame.Color(255, 255, 255))
+        self.screen.blit(score, [screen_width - score.get_width(), 55])
+        pygame.display.flip()
+
+    def displayDifficulty(self):
+        if self.model.config['difficulty'] == 1:
+            difficuly_txt = "Easy"
+            color = pygame.Color(0, 255, 0)
+        elif self.model.config['difficulty'] == 2:
+            difficuly_txt = "Medium"
+            color = pygame.Color(255, 127, 0)
+        elif self.model.config['difficulty'] == 3:
+            difficuly_txt = "Hard"
+            color = pygame.Color(255, 0, 0)
+
+        police = pygame.font.Font(None, 40)
+        difficulty = police.render("Difficulty : " + difficuly_txt, True, color)
+        self.screen.blit(difficulty, [5, 80])
+        pygame.display.flip()
     def notify(self, event):
         """
         Receive events posted to the message queue. 
@@ -230,6 +253,7 @@ class GraphicalView(object):
         if self.message is not None:
             self.displaySucces(self.message)
         self.displayScore()
+        self.displayBestScore()
         self.drawCheckCircles(screen_height)
         self.drawCheckLetters(screen_height)
         # flip the display to show whatever we drew
@@ -248,6 +272,10 @@ class GraphicalView(object):
 
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
+        self.buttonEasy.draw(self.screen)
+        self.buttonMedium.draw(self.screen)
+        self.buttonHard.draw(self.screen)
+        self.displayDifficulty()
 
         self.YOUTUBELINKTEXTBOX.draw(self.screen)
         self.BUTTONYOUTUBELINK.draw(self.screen)
@@ -392,6 +420,34 @@ class GraphicalView(object):
                                                     colorLabel=(0, 0, 0),
                                                     placeHolder=pygameInterface.StyleButton(480, 380, 191, 64,
                                                                                             label="Library",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(255, 0, 0))
+                                                    )
+
+        self.buttonEasy = pygameInterface.Button(5, 10, 70, 70,
+                                                    label="Easy",
+                                                    color=(0, 255, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(5, 10, 70, 70,
+                                                                                            label="Easy",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(0, 255, 0))
+                                                    )
+        self.buttonMedium = pygameInterface.Button(5, 90, 70, 70,
+                                                    label="Medium",
+                                                    color=(255, 127, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(5, 90, 70, 70,
+                                                                                            label="Medium",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(255, 127, 0))
+                                                    )
+        self.buttonHard = pygameInterface.Button(5, 170, 70, 70,
+                                                    label="Hard",
+                                                    color=(255, 0, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(5, 170, 70, 70,
+                                                                                            label="Hard",
                                                                                             color=(0, 0, 0),
                                                                                             colorLabel=(255, 0, 0))
                                                     )

@@ -59,6 +59,7 @@ class GameEngine(object):
         self.passTimeMusic = False
 
         self.musicnamelist = None
+        self.bestscore = None
 
         # general
         self.evManager = evManager
@@ -198,6 +199,11 @@ class GameEngine(object):
                 np.savetxt(bestscorefilepath, array_score)
                 self.evManager.Post(newBestScoreEvent(self.gamescore))
 
+    def modifDifficulty(self, level):
+        self.config['difficulty'] = level
+        with open('config.json','w') as config:
+            json.dump(self.config, config)
+
     def run(self):
 
         self.running = True
@@ -252,10 +258,15 @@ class GameEngine(object):
                 dictInstruments = musicfile.getinstruments()
                 musicfile.savejson()
                 musicfile.copy()
+                if os.path.exists("preprocessed/" + musicfile.getmusicname() + "/bestscore.csv"):
+                    self.bestscore = np.loadtxt("preprocessed/" + musicfile.getmusicname() + "/bestscore.csv")
+
             if self.musicnamelist is not None:
                 self.passTimeMusic = False
                 self.file = "preprocessed/" + self.musicnamelist + "/" + self.musicnamelist + ".wav"
                 musicfile = AutomaticBeats(self.file, self.config["spleeter"])
+                if os.path.exists("preprocessed/" + self.musicnamelist + "/bestscore.csv"):
+                    self.bestscore = np.loadtxt("preprocessed/" + self.musicnamelist + "/bestscore.csv")
                 if self.config["spleeter"]:
                     path = "preprocessed/" + self.musicnamelist + "/instrumentswithspleeter.json"
                     if os.path.exists(path):

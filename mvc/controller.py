@@ -69,6 +69,13 @@ class Keyboard(object):
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_EMPTYLIBRARY))
 
+        if self.view.buttonEasy.cliked(self.listEvent):
+            self.model.modifDifficulty(1)
+        if self.view.buttonMedium.cliked(self.listEvent):
+            self.model.modifDifficulty(2)
+        if self.view.buttonHard.cliked(self.listEvent):
+            self.model.modifDifficulty(3)
+
     def keydownyoutubelink(self, event):
         # not optimized way, will modify later
 
