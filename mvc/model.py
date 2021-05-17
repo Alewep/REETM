@@ -202,7 +202,7 @@ class GameEngine(object):
     def modifDifficulty(self, level):
         self.config['difficulty'] = level
         with open('config.json','w') as config:
-            json.dump(self.config, config)
+            json.dump(self.config, config, indent=4)
 
     def run(self):
 
