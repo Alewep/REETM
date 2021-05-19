@@ -71,26 +71,35 @@ class Textbox():
         self.text = ''
         self.target = 0
         self.fontLabel = pygame.font.Font(None, 25)
+        self.count = 0
 
     def text_typing(self, add):
         self.text += add
 
     def text_backspace(self):
-        self.text = self.text[:-1]
+        if(self.text != ''):
+            self.text = self.text[:-1]
 
     def reset(self):
         self.text = ''
 
     def draw(self, screen):
         surface = self._surface()
-        labelSurface = self.fontLabel.render(self.text, True, (255, 255, 255))
+        img = pygame.image.load("./assets/textcursor.png")
+        if(self.text == '' and self.target == 0):
+            labelSurface = self.fontLabel.render("Enter the youtube link here", True, (150, 150, 150))
+        else:
+            labelSurface = self.fontLabel.render(self.text, True, (255, 255, 255))
         labelSurface_rect = labelSurface.get_rect(center=(self.width / 2, self.height / 2))
         surface.blit(labelSurface, labelSurface_rect)
 
         screen.blit(surface, (self.y, self.x))
+        if(self.count < 10 and self.target == 1):
+            screen.blit(img, (((self.y+(self.y+self.width))/2)-6+(labelSurface.get_size()[0]/2), self.x+3))
 
-    def getText(self):
-        return self.text
+        self.count = self.count + 1
+        if(self.count > 20):
+            self.count = 0
 
     def _surface(self):
         return pygame.Surface((self.width, self.height))

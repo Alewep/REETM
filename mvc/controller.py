@@ -100,7 +100,7 @@ class Keyboard(object):
                             self.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
 
         if self.view.BUTTONYOUTUBELINK.cliked(self.listEvent):
-            self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
+            self.model.process(self.view.YOUTUBELINKTEXTBOX.text)
         if self.view.BUTTONRESET.cliked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.reset()
 
