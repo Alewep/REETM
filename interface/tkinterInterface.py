@@ -29,14 +29,14 @@ class ComboBox(object):
         self.buttonconfirm.pack()
         self.buttonconfirm.config(command=self.confirmation)
         self.clicked = False
-        self.clikedquit = False
+        self.clickedquit = False
         self.chosenfile = None
 
         self.window.protocol('WM_DELETE_WINDOW', self.quit)
 
     def quit(self):
         self.window.destroy()
-        self.clikedquit = True
+        self.clickedquit = True
 
     def confirmation(self):
         self.chosenfile = self.listeSongs.get()

@@ -1,6 +1,7 @@
 import tkinter.messagebox
 
 from mvc.eventmanager import *
+import mvc.timer as timer
 from mvc.model import *
 from interface import pygameInterface
 from interface import tkinterInterface
@@ -52,18 +53,21 @@ class GraphicalView(object):
         self.songs_list = None
         self.counter = 0
         self.cooldown = 1000
-        self.last = pygame.time.get_ticks()
+        self.last = timer.time()
 
         self.YOUTUBELINKTEXTBOX = None
         self.BUTTONYOUTUBELINK = None
         self.BUTTONRESET = None
+        self.BUTTONPAUSE = None
+        self.PANELPAUSE = None
 
     # add a hit to the screen
-    def resetInstruments(self):
+    def resetplay(self):
         self.instruments_state = []
+        self.message = None
 
     def addInstrument(self, instrument, numberclass):
-        if numberclass + 1 > len(self.instruments_state) :
+        if numberclass + 1 > len(self.instruments_state):
             for i in range(len(self.instruments_state), numberclass + 1):
                 self.instruments_state.append([])
         _, height = pygame.display.get_surface().get_size()
@@ -74,15 +78,11 @@ class GraphicalView(object):
         _, height = pygame.display.get_surface().get_size()
         for i in range(len(liste_instrument)):
             liste_instrument[i].updatePosition()
-            # print(self.beats_state[i].getPosition())
-        listTemp = liste_instrument.copy()
-        for i in range(len(listTemp)):
-            if listTemp[i].position > height:
-                liste_instrument.pop(i)
+        liste_instrument[:] = [x for x in liste_instrument if x.position < height]
 
     def isexcellent(self, beat):
-        return (beat.time < pygame.time.get_ticks() + self.model.config["delta_excellent"]) & (
-                beat.time > pygame.time.get_ticks() - self.model.config["delta_meh"])
+        return (beat.time < timer.time() + self.model.config["delta_excellent"]) & (
+                beat.time > timer.time() - self.model.config["delta_meh"])
 
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstruments(self):
@@ -138,7 +138,6 @@ class GraphicalView(object):
             if currentstate == STATE_LIBRARY:
                 self.renderlibrary()
             if currentstate == STATE_ENDGAME:
-                self.resetInstruments()
                 self.renderendgame()
             if currentstate == STATE_CHOOSEFILE:
                 self.renderChooseFile()
@@ -162,6 +161,11 @@ class GraphicalView(object):
                 self.e_pressed = event.pressed
         elif isinstance(event, newBestScoreEvent):
             self.rendernewbestscore(event.newbestscore)
+
+        elif isinstance(event, StateChangeEvent) | isinstance(event, ResetPlayEvent):
+            if (isinstance(event, ResetPlayEvent)) or (event.state == STATE_PLAY):
+                self.resetplay()
+
 
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
 
@@ -202,21 +206,24 @@ class GraphicalView(object):
         Does nothing if isinitialized == False (pygame.init failed)
         """
         width, height = pygame.display.get_surface().get_size()
-        # clear display
         self.screen.fill((0, 0, 0))
-        # draw some words on the screen
-        # Initializing surface
-        # print(pygame.time.get_ticks())
-        # print(pygame.time.Clock())
-        for instrument in self.instruments_state:
-            self.updateInstrument_state(instrument)
 
-        self.drawInstruments()
+        self.BUTTONPAUSE.draw(self.screen)
+        self.drawCheckCircles(screen_height)
+        self.drawCheckLetters(screen_height)
+
+        if not self.model.pause:
+            for instrument in self.instruments_state:
+                self.updateInstrument_state(instrument)
+            self.drawInstruments()
+        else:
+            self.drawInstruments()
+            self.PANELPAUSE.draw(self.screen)
+
         if self.message is not None:
             self.displaySucces(self.message)
         self.displayScore()
-        self.drawCheckCircles(screen_height)
-        self.drawCheckLetters(screen_height)
+
         # flip the display to show whatever we drew
         pygame.display.flip()
 
@@ -315,11 +322,11 @@ class GraphicalView(object):
 
         self.screen.fill((0, 0, 0))
         self.screen.blit(self.imgMenu, (0, 0))
-        text = fontTitle.render("Loading", True, (133, 193, 233))
+        text = fontTitle.render("Loading", True, (255, 255, 255))
         if self.counter == 3:
-            self.counter =0
+            self.counter = 0
 
-        now = pygame.time.get_ticks()
+        now = timer.time()
 
         if now - self.last >= self.cooldown:
             self.last = now
@@ -333,13 +340,7 @@ class GraphicalView(object):
 
         self.screen.blit(text, (375, 300))
 
-
         pygame.display.flip()
-
-
-
-
-
 
     def initialize(self):
         """
@@ -360,6 +361,28 @@ class GraphicalView(object):
                                                                                              color=(0, 0, 0),
                                                                                              colorLabel=(255, 0, 0))
                                                      )
+        self.PANELPAUSE = pygameInterface.PauseScreen(380, 250, 500, 150,
+                                                      {
+                                                          "buttonHome": pygameInterface.Button(50, 30, 100, 100,
+                                                                                               image="assets/home.png",
+                                                                                               placeHolder=pygameInterface.StyleButton(
+                                                                                                   50, 30, 100, 100,
+                                                                                                   image="assets/holdhome.png",
+                                                                                               )),
+                                                          "buttonPlay": pygameInterface.Button(50, 180, 100, 100,
+                                                                                               image="assets/play.png",
+                                                                                               placeHolder=pygameInterface.StyleButton(
+                                                                                                   50, 180, 100, 100,
+                                                                                                   image="assets/holdplay.png")),
+                                                          "buttonRetry": pygameInterface.Button(50, 330, 100, 100,
+                                                                                                image="assets/retry.png",
+                                                                                                placeHolder=pygameInterface.StyleButton(
+                                                                                                    50, 330, 100, 100,
+                                                                                                    image="assets/holdretry.png"))
+                                                      }
+                                                      , image="assets/panel.png"
+
+                                                      )
 
         self.buttonMenuReturn = pygameInterface.Button(600, 550, 191, 64,
                                                        label="Continue",
@@ -392,7 +415,10 @@ class GraphicalView(object):
                                                   image="assets/ClearButton.jpg",
                                                   placeHolder=pygameInterface.StyleButton(390, 1025, 115, 30,
                                                                                           image="assets/ClearButtonSelect.jpg"))
+        self.BUTTONPAUSE = pygameInterface.Button(600, 5, 104, 90, image="assets/pause.png",
+                                                  placeHolder=pygameInterface.StyleButton(600, 5, 104, 90,
+                                                                                          image="assets/holdpause.png"))
 
-        # print(self.clock)
+
         self.smallfont = pygame.font.Font(None, 40)
         self.isinitialized = True

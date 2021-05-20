@@ -1,6 +1,8 @@
 import pygame
 
 pygame.init()
+
+
 class StyleButton(object):
     def __init__(self, left, top, width, height, label=None, image=None,
                  legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
@@ -22,8 +24,6 @@ class StyleButton(object):
     def _surface(self):
         return pygame.Surface((self.width, self.height))
 
-    def _rectangle(self):
-        return self._surface().get_rect(topleft=(self.top, self.left))
 
     def draw(self, screen):
         surfaceButton = self._surface()
@@ -43,25 +43,30 @@ class StyleButton(object):
 class Button(StyleButton):
     def __init__(self, left, top, width, height, label=None, image=None,
                  legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
-                 fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None):
+                 fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None,decalLeft=0, decalTop=0):
 
         super().__init__(left, top, width, height, label, image, legend, color, colorLabel, fontLabel, fontLegend)
         self.placeHolder = placeHolder
+        self.decalLeft = decalLeft
+        self.decalTop = decalTop
 
-    def cliked(self, pygameEventListener):
+    def __rectangle(self):
+        return self._surface().get_rect(topleft=(self.top + self.decalTop, self.left + self.decalLeft))
+
+    def clicked(self, pygameEventListener):
         for event in pygameEventListener:
             if event.type == pygame.MOUSEBUTTONUP:
-                return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
+                return pygame.Rect.collidepoint(self.__rectangle(), pygame.mouse.get_pos())
         return False
 
-    def draw(self, screen):
-        if self.placeHolder is not None and pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos()):
+    def draw(self, screen, ):
+        if self.placeHolder is not None and pygame.Rect.collidepoint(self.__rectangle(), pygame.mouse.get_pos()):
             self.placeHolder.draw(screen)
         else:
             super().draw(screen)
 
 
-class Textbox():
+class Textbox(object):
     def __init__(self, x, y, width, height, fontLabel=pygame.font.Font(None, 30)):
         self.x = x
         self.y = y
@@ -103,3 +108,57 @@ class Textbox():
             if event.type == pygame.MOUSEBUTTONUP:
                 return pygame.Rect.collidepoint(self._rectangle(), pygame.mouse.get_pos())
         return False
+
+
+class PauseScreen(object):
+    def __init__(self, top, left, width, height, buttonDict={},
+                 fontLabel=pygame.font.SysFont('Arial', 25), image=None):
+        self.top = top
+        self.left = left
+        self.width = width
+        self.height = height
+
+        self.buttonDict = buttonDict
+
+        self.fontLabel = fontLabel
+
+        self.display = False
+
+        self.image = image
+
+    def _surface(self):
+        return pygame.Surface((self.width, self.height))
+
+    def _rectangle(self):
+        return self._surface().get_rect(topleft=(self.x, self.y))
+
+    def homeClicked(self, pygameEventListener):
+        return self.buttonHome.clicked(pygameEventListener)
+
+    def retryClicked(self, pygameEventListener):
+        return self.buttonRetry.clicked(pygameEventListener)
+
+    def playClicked(self, pygameEventListener):
+        return self.buttonPlay.clicked(pygameEventListener)
+
+    def draw(self, screen):
+        surfacePause = self._surface()
+
+        if self.image is not None:
+            surfacePause = pygame.image.load(self.image).convert_alpha()
+        else:
+            pygame.Surface.fill(surfacePause, self.color)
+
+        width, height = size = surfacePause.get_width(), surfacePause.get_height()
+
+        for button in self.buttonDict.items():
+            button[1].decalTop = self.top
+            button[1].decalLeft = self.left
+            button[1].draw(surfacePause)
+
+        labelSurface = self.fontLabel.render("Pause", True, (255, 255, 255))
+
+        labelSurface_rect = labelSurface.get_rect(center=(width / 2, 0))
+        labelSurface_rect.top = 0
+        surfacePause.blit(labelSurface, labelSurface_rect)
+        screen.blit(surfacePause, (self.top, self.left))

@@ -18,8 +18,6 @@ def simplification(instruments):
         sum = timeref
         for time in instrument[1:]:
             if time > timeref + timerange:
-                print(time, sum / iteration)
-
                 simp.append(sum / iteration)
                 timeref = time
                 sum = time
@@ -107,8 +105,6 @@ class AutomaticBeats(object) :
                         mask = (time - 1 <= instrument) & (instrument <= time + 1)
                         moyenne = instrument[mask].mean()
                         instrument = np.append(instrument[np.logical_not(mask)], moyenne)
-                    print(instrument)
-
         return self.instruments_dictionary
 
     def savejson(self):

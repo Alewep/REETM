@@ -1,4 +1,5 @@
 import pygame.time
+import mvc.timer as timer
 
 
 class Event(object):
@@ -54,13 +55,15 @@ class InputEvent(Event):
     def __init__(self, instrumentclass, pressed):  # instrumentclass is int
         self.name = "Input event"
         self.classe = instrumentclass
-        self.time = pygame.time.get_ticks()
+        self.time = timer.time()
         self.pressed = pressed
+
 
 class newBestScoreEvent(Event):
     def __init__(self, score):
         self.name = "Score event"
         self.newbestscore = score
+
 
 class ScoreEvent(Event):
 
@@ -69,14 +72,18 @@ class ScoreEvent(Event):
         self.type_success = type_success
         self.score = current_score
 
+
 class FileChooseEvent(Event):
     def __init__(self, file):
         self.file = file
+        self.name = 'File choose event'
 
 
 class FileChooseListEvent(Event):
     def __init__(self, file):
         self.file = file
+        self.name = "File choose list event"
+
 
 class ButtonMenuPlayEvent(Event):
     def __init__(self):
@@ -86,6 +93,11 @@ class ButtonMenuPlayEvent(Event):
 class ButtonMenuReturnEvent(Event):
     def __init__(self):
         self.name = "Button menu return event"
+
+
+class ResetPlayEvent(Event):
+    def __init__(self):
+        self.name = "Reset play event"
 
 
 class InitializeEvent(Event):

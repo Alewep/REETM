@@ -5,8 +5,6 @@ from mvc.eventmanager import *
 from mvc import model
 
 
-
-
 class Keyboard(object):
     """
     Handles keyboard input.
@@ -58,11 +56,10 @@ class Keyboard(object):
                     if currentstate == model.STATE_FILENOTFOUND:
                         self.keydownfilenotfound(event)
 
-
     def keydownmenu(self, event):
-        if self.view.buttonMenuPlay.cliked(self.listEvent):
+        if self.view.buttonMenuPlay.clicked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_CHOOSEFILE))
-        if self.view.buttonLibrary.cliked(self.listEvent):
+        if self.view.buttonLibrary.clicked(self.listEvent):
             if os.path.isdir('preprocessed'):
                 self.evManager.Post(StateChangeEvent(model.STATE_LIBRARY))
             else:
@@ -90,28 +87,38 @@ class Keyboard(object):
                             self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
                         else:
                             self.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
-                            print(self.view.YOUTUBELINKTEXTBOX.text)
 
-        if self.view.BUTTONYOUTUBELINK.cliked(self.listEvent):
+        if self.view.BUTTONYOUTUBELINK.clicked(self.listEvent):
             self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
-        if self.view.BUTTONRESET.cliked(self.listEvent):
+        if self.view.BUTTONRESET.clicked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.reset()
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.evManager.Post(QuitEvent())
-            if event.key in self.KeysList:
-                newInputEvent = InputEvent(self.KeysList.index(event.key), True)
-                self.evManager.Post(newInputEvent)
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_ESCAPE:
-                self.evManager.Post(QuitEvent())
-            if event.key in self.KeysList:
-                newInputEvent = InputEvent(self.KeysList.index(event.key), False)
-                self.evManager.Post(newInputEvent)
-
+        if not self.model.pause:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.model.start_pause()
+                if event.key in self.KeysList:
+                    newInputEvent = InputEvent(self.KeysList.index(event.key), True)
+                    self.evManager.Post(newInputEvent)
+            if event.type == pygame.KEYUP:
+                if event.key in self.KeysList:
+                    newInputEvent = InputEvent(self.KeysList.index(event.key), False)
+                    self.evManager.Post(newInputEvent)
+            if self.view.BUTTONPAUSE.clicked(self.listEvent):
+                self.model.start_pause()
+        else:
+            if self.view.PANELPAUSE.buttonDict['buttonHome'].clicked(self.listEvent):
+                self.model.home()
+            elif self.view.PANELPAUSE.buttonDict['buttonPlay'].clicked(self.listEvent):
+                self.model.play()
+            elif self.view.PANELPAUSE.buttonDict['buttonRetry'].clicked(self.listEvent):
+                self.model.retry()
+            else:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.model.play()
 
     def keydownchoosefile(self, event):
         if self.view.fileSelected is not None:
@@ -121,22 +128,21 @@ class Keyboard(object):
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
     def keydownlibrary(self, event):
-        if self.view.songs_list.clicked:
-            if not self.view.songs_list.chosenfile == '':
-                self.evManager.Post(FileChooseListEvent(self.view.songs_list.chosenfile))
-            else:
+        if self.view.songs_list is not None:
+            if self.view.songs_list.clicked:
+                if not self.view.songs_list.chosenfile == '':
+                    self.evManager.Post(FileChooseListEvent(self.view.songs_list.chosenfile))
+                else:
+                    self.evManager.Post(StateChangeEvent(model.STATE_MENU))
+            if self.view.songs_list.clickedquit:
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
-        if self.view.songs_list.clikedquit:
-            self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
-    def keydownemptylibrary(self,event):
+    def keydownemptylibrary(self, event):
         self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
-    def keydownfilenotfound(self,event):
+    def keydownfilenotfound(self, event):
         self.evManager.Post(StateChangeEvent(model.STATE_MENU))
 
     def keydownendgame(self, event):
-        if self.view.buttonMenuReturn.cliked(self.listEvent):
+        if self.view.buttonMenuReturn.clicked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_MENU))
-
-

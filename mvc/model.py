@@ -1,8 +1,11 @@
 from mvc.eventmanager import *
+import mvc.timer as timer
 from addons.AutomaticBeats import AutomaticBeats
 from addons.AutomaticBeats import simplification
 from addons import library
 
+import threading
+import copy
 import pygame
 import numpy as np
 import os
@@ -15,7 +18,7 @@ from pytube import YouTube
 class Beat(object):
     def __init__(self, time):
         self.time = time
-        self.timeSend = pygame.time.get_ticks()
+        self.timeSend = timer.time()
         self.distanceInPixel = 0
         self.position = 0
 
@@ -23,7 +26,7 @@ class Beat(object):
         self.distanceInPixel = distanceInPixel
 
     def setTimeSend(self):
-        self.timeSend = pygame.time.get_ticks()
+        self.timeSend = timer.time()
 
     def timeToArrive(self):
         return self.time - self.timeSend
@@ -32,7 +35,7 @@ class Beat(object):
         return self.distanceInPixel / self.timeToArrive()
 
     def updatePosition(self):
-        actualTime = pygame.time.get_ticks()
+        actualTime = timer.time()
         durationLife = actualTime - self.timeSend
         self.position = durationLife * self.speed()
 
@@ -53,12 +56,15 @@ class GameEngine(object):
 
         self.arrayInstruments = None
         self.listInstruments = None
-
+        self.saveArrayInstruments = None
+        self.saveListInstruments = None
         self.gamescore = 0
 
         self.passTimeMusic = False
-
+        self.duration = None
         self.musicnamelist = None
+
+        self.pause = False
 
         # general
         self.evManager = evManager
@@ -95,7 +101,6 @@ class GameEngine(object):
             # create a folder from the song title if it doesn't exist yet in the song folder
             os.makedirs("song/" + yt.title, exist_ok=True)
             wget.download(yt.thumbnail_url, out="song/" + yt.title)
-            print(yt.video_id)
             self.DL_mp4(yt)
             self.DL_mp4_nosound(yt)
             self.mp4ToWav(yt)
@@ -113,7 +118,7 @@ class GameEngine(object):
 
         if isinstance(event, QuitEvent):
             self.running = False
-        if isinstance(event, StateChangeEvent):
+        elif isinstance(event, StateChangeEvent):
             # pop request
             if not event.state:
                 # false if no more states are left
@@ -123,22 +128,52 @@ class GameEngine(object):
                 # push a new state on the stack
                 self.state.push(event.state)
                 self.initialize()
-        if isinstance(event, InputEvent):
+        elif isinstance(event, InputEvent):
             if event.pressed:
                 newScoreEvent = ScoreEvent(self.inputVerifBeat(event.time, event.classe), self.gamescore)
                 self.evManager.Post(newScoreEvent)
 
-        if isinstance(event, FileChooseListEvent):
+        elif isinstance(event, FileChooseListEvent):
             self.file = None
             self.musicnamelist = event.file
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
-        if isinstance(event, FileChooseEvent):
+        elif isinstance(event, FileChooseEvent):
             self.file = event.file
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
+    def start_pause(self):
+        timer.pause()
+        self.pause = True
+        pygame.mixer.music.pause()
+
+    def end_pause(self):
+        if self.pause:
+            timer.unpause()
+            pygame.mixer.music.unpause()
+        self.pause = False
+
+    def home(self,):
+        self.end_pause()
+        self.evManager.Post(StateChangeEvent(STATE_MENU))
+        pygame.mixer.music.stop()
+
+    def play(self):
+        self.end_pause()
+
+    def retry(self):
+        pygame.mixer.music.stop()
+        self.end_pause()
+        self.passTimeMusic = False
+        self.arrayInstruments = copy.deepcopy(self.saveArrayInstruments)
+        self.listInstruments = copy.deepcopy(self.saveListInstruments)
+        self.evManager.Post(ResetPlayEvent())
+        timer.reset()
+
+
     def instrumentNow(self, liste_beat, num_classe):
-        if (len(liste_beat) != 0) and (pygame.time.get_ticks() >= (liste_beat[0] - self.config["timeadvence"])):
+
+        if (len(liste_beat) > 0) and (timer.time() >= (liste_beat[0] - self.config["timeadvence"])):
             newBeatEvent = BeatEvent(Beat(liste_beat[0]), num_classe)
             self.evManager.Post(newBeatEvent)
             liste_beat.pop(0)
@@ -222,17 +257,61 @@ class GameEngine(object):
             elif self.state.peek() == STATE_FILENOTFOUND:
                 pass
             elif self.state.peek() == STATE_PLAY:
-                for i in range(len(self.listInstruments)):
-                    self.instrumentNow(self.listInstruments[i], i)
-                if not self.passTimeMusic and pygame.time.get_ticks() >= self.config["timeadvence"] + self.time_start:
-                    self.passTimeMusic = True
-                    pygame.mixer.music.play()
-                if pygame.time.get_ticks() >= self.duration + self.time_start + self.config["timeadvence"]:
-                    self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
+                if not self.pause:
+                    for i in range(len(self.listInstruments)):
+                        self.instrumentNow(self.listInstruments[i], i)
+                    if not self.passTimeMusic and timer.time() >= self.config[
+                        "timeadvence"]:
+                        self.passTimeMusic = True
+                        pygame.mixer.music.play()
+                    if timer.time() >= self.duration + self.config["timeadvence"]:
+                        self.evManager.Post(StateChangeEvent(STATE_ENDGAME))
             elif self.state.peek() == STATE_LOADING:
                 pass
             else:
                 self.running = False
+
+    def charginMusic(self):
+        self.passTimeMusic = False
+        if self.file is not None:
+            musicfile = AutomaticBeats(self.file, self.config["spleeter"])
+            dictInstruments = musicfile.getinstruments()
+            musicfile.savejson()
+            musicfile.copy()
+        if self.musicnamelist is not None:
+            self.file = "preprocessed/" + self.musicnamelist + "/" + self.musicnamelist + ".wav"
+            musicfile = AutomaticBeats(self.file, self.config["spleeter"])
+            if self.config["spleeter"]:
+                path = "preprocessed/" + self.musicnamelist + "/instrumentswithspleeter.json"
+                if os.path.exists(path):
+                    instruments = path
+                else:
+                    self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
+                    return
+            else:
+                path = "preprocessed/" + self.musicnamelist + "/instrumentswithoutspleeter.json"
+                if os.path.exists(path):
+                    instruments = path
+                else:
+                    self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
+                    return
+            dictInstruments = library.json_to_dict(instruments)
+
+        if self.config["simplification"]:
+            dictInstruments = simplification(dictInstruments)
+
+        self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                 dictInstruments.items()]
+        self.saveArrayInstruments = copy.deepcopy(self.arrayInstruments)
+
+        pygame.mixer.init()
+        pygame.mixer.music.load(self.file)
+        self.duration = musicfile.getduration() * 1000  # ms
+        self.gamescore = 0
+        self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
+        self.saveListInstruments = copy.deepcopy(self.listInstruments)
+        self.state.push(STATE_PLAY)
+        timer.reset()
 
     def initialize(self):
 
@@ -249,48 +328,8 @@ class GameEngine(object):
         elif self.state.peek() == STATE_FILENOTFOUND:
             pass
         elif self.state.peek() == STATE_PLAY:
-            if self.file is not None:
-                self.passTimeMusic = False
-                musicfile = AutomaticBeats(self.file, self.config["spleeter"])
-                dictInstruments = musicfile.getinstruments()
-                musicfile.savejson()
-                musicfile.copy()
-            if self.musicnamelist is not None:
-                self.passTimeMusic = False
-                self.file = "preprocessed/" + self.musicnamelist + "/" + self.musicnamelist + ".wav"
-                musicfile = AutomaticBeats(self.file, self.config["spleeter"])
-                if self.config["spleeter"]:
-                    path = "preprocessed/" + self.musicnamelist + "/instrumentswithspleeter.json"
-                    if os.path.exists(path):
-                        instruments = path
-                    else:
-                        self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
-                        return
-                else:
-                    path = "preprocessed/" + self.musicnamelist + "/instrumentswithoutspleeter.json"
-                    if os.path.exists(path):
-                        instruments = path
-                    else:
-                        self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
-                        return
-                dictInstruments = library.json_to_dict(instruments)
-
-            if self.config["simplification"]:
-                dictInstruments = simplification(dictInstruments)
-
-            self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
-                                     dictInstruments.items()]
-
-            pygame.mixer.init()
-            pygame.mixer.music.load(self.file)
-            self.duration = musicfile.getduration() * 1000  # ms
-            self.gamescore = 0
-            self.time_start = pygame.time.get_ticks()
-
-
-            self.arrayInstruments = [instrument + pygame.time.get_ticks() for instrument in self.arrayInstruments]
-            self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
-
+            self.state.push(STATE_LOADING)
+            threading.Thread(target=self.charginMusic).start()
 
 # State machine constants for the StateMachine class below
 STATE_MENU = 1
