@@ -1,6 +1,7 @@
 from mvc import model, controller, view, eventmanager
 import pygame
 
+
 def run():
     pygame.font.init()
     evManager = eventmanager.EventManager()
@@ -10,8 +11,6 @@ def run():
 
     gamemodel.run()
 
+
 if __name__ == '__main__':
     run()
-
-
-

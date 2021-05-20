@@ -27,6 +27,7 @@ class Keyboard(object):
         self.KeysList = []
         for elem in KeysListold:
             self.KeysList.append(eval(elem))
+        self.KeysList = self.KeysList[0:self.model.config['difficulty']]
 
     def notify(self, event):
         """
@@ -68,11 +69,11 @@ class Keyboard(object):
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_EMPTYLIBRARY))
 
-        if self.view.buttonEasy.cliked(self.listEvent):
+        if self.view.buttonEasy.clicked(self.listEvent):
             self.model.modifDifficulty(1)
-        if self.view.buttonMedium.cliked(self.listEvent):
+        if self.view.buttonMedium.clicked(self.listEvent):
             self.model.modifDifficulty(2)
-        if self.view.buttonHard.cliked(self.listEvent):
+        if self.view.buttonHard.clicked(self.listEvent):
             self.model.modifDifficulty(3)
 
     def keydownyoutubelink(self, event):
@@ -99,7 +100,7 @@ class Keyboard(object):
                             self.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
 
         if self.view.BUTTONYOUTUBELINK.clicked(self.listEvent):
-            self.model.process(self.view.YOUTUBELINKTEXTBOX.getText())
+            self.model.process(self.view.YOUTUBELINKTEXTBOX.text)
         if self.view.BUTTONRESET.clicked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.reset()
 
@@ -146,6 +147,7 @@ class Keyboard(object):
                     self.evManager.Post(StateChangeEvent(model.STATE_MENU))
             if self.view.songs_list.clickedquit:
                 self.evManager.Post(StateChangeEvent(model.STATE_MENU))
+            self.view.songs_list = None
 
     def keydownemptylibrary(self, event):
         self.evManager.Post(StateChangeEvent(model.STATE_MENU))

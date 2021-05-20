@@ -14,7 +14,7 @@ def reset():
 
 
 def time():
-    return (pygame.time.get_ticks() - this.startTime) - this.timeDecalagePause
+    return (pygame.time.get_ticks() - this.startTime) - actualDecalageTime()
 
 
 def pause():
@@ -28,6 +28,12 @@ def unpause():
         raise NameError('Timer was not in pause')
 
     this.timeStartPause = None
+
+
+def actualDecalageTime():
+    if this.timeStartPause is not None:
+        return (pygame.time.get_ticks() - this.timeStartPause) + this.timeDecalagePause
+    return this.timeDecalagePause
 
 
 def inpause():

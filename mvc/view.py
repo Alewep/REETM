@@ -1,5 +1,7 @@
 import tkinter.messagebox
 
+import pygame.display
+
 from mvc.eventmanager import *
 import mvc.timer as timer
 from mvc.model import *
@@ -56,6 +58,7 @@ class GraphicalView(object):
         self.last = timer.time()
 
         self.positions = self.positions_difficuly()
+        print(self.positions)
 
         self.YOUTUBELINKTEXTBOX = None
         self.BUTTONYOUTUBELINK = None
@@ -69,6 +72,7 @@ class GraphicalView(object):
         self.message = None
 
     def addInstrument(self, instrument, numberclass):
+        print("numberclass:",numberclass)
         if numberclass + 1 > len(self.instruments_state):
             for i in range(len(self.instruments_state), numberclass + 1):
                 self.instruments_state.append([])
@@ -83,7 +87,7 @@ class GraphicalView(object):
         liste_instrument[:] = [x for x in liste_instrument if x.position < height]
 
     def isexcellent(self, beat):
-        return (beat.time < timer.time() + self.model.config["delta_excellent"]) & (
+        return (beat.time < timer.time() + self.model.config["delta_excellent"]) and (
                 beat.time > timer.time() - self.model.config["delta_meh"])
 
     def positions_difficuly(self):
@@ -172,7 +176,6 @@ class GraphicalView(object):
             if currentstate == STATE_LIBRARY:
                 self.renderlibrary()
             if currentstate == STATE_ENDGAME:
-                self.resetInstruments()
                 self.renderendgame()
             if currentstate == STATE_CHOOSEFILE:
                 self.renderChooseFile()
@@ -255,8 +258,9 @@ class GraphicalView(object):
         self.BUTTONPAUSE.draw(self.screen)
         self.drawCheckCircles(screen_height)
         self.drawCheckLetters(screen_height)
-        self.displayScore()
-        self.displayBestScore()
+
+        if self.message is not None:
+            self.displaySucces(self.message)
 
         if not self.model.pause:
             for instrument in self.instruments_state:
@@ -266,9 +270,10 @@ class GraphicalView(object):
             self.drawInstruments()
             self.PANELPAUSE.draw(self.screen)
 
-        if self.message is not None:
-            self.displaySucces(self.message)
         self.displayScore()
+        self.displayBestScore()
+
+
 
         # flip the display to show whatever we drew
         pygame.display.flip()
@@ -284,16 +289,16 @@ class GraphicalView(object):
 
         self.screen.blit(title, (350, 150))
 
+        self.YOUTUBELINKTEXTBOX.draw(self.screen)
+        self.BUTTONYOUTUBELINK.draw(self.screen)
+        self.BUTTONRESET.draw(self.screen)
+
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
         self.buttonEasy.draw(self.screen)
         self.buttonMedium.draw(self.screen)
         self.buttonHard.draw(self.screen)
         self.displayDifficulty()
-
-        self.YOUTUBELINKTEXTBOX.draw(self.screen)
-        self.BUTTONYOUTUBELINK.draw(self.screen)
-        self.BUTTONRESET.draw(self.screen)
         pygame.display.flip()
 
     def renderChooseFile(self):
@@ -309,6 +314,7 @@ class GraphicalView(object):
     def renderlibrary(self):
         self.songs_list = tkinterInterface.ComboBox(title="Library")
         self.songs_list.window.mainloop()
+
 
     def renderemptylibrary(self):
         window = tkinter.Tk()

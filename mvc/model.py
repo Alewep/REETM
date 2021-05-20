@@ -13,6 +13,8 @@ import json
 import wget
 import subprocess
 from pytube import YouTube
+import youtube_dl
+import moviepy
 
 
 class Beat(object):
@@ -73,18 +75,9 @@ class GameEngine(object):
         self.running = False
         self.state = StateMachine()
 
-    # Download a youtube video in mp4 format from a youtube link
-    def DL_mp4(self, yt):
-        yt.streams.filter().first().download(output_path="song/" + yt.title + "/", filename=yt.title)
-
-    # Download a youtube video in mp4 format from a youtube link without sound
-    def DL_mp4_nosound(self, yt):
-        yt.streams.filter(only_video=True).first().download(output_path="song/" + yt.title + "/",
-                                                            filename=yt.title + "nosound")
-
-    # Mp4 file format to wav file format
-    def mp4ToWav(self, yt):
-        command = "ffmpeg -y -i \"song/" + yt.title + "/" + yt.title + ".mp4\" -ab 160k -ac 2 -ar 44100 -vn \"song/" + yt.title + "/" + yt.title + ".wav\""
+    @staticmethod
+    def mp4ToWav(pathtosource, pathtosave):
+        command = "ffmpeg -y -i \"" + pathtosource + "\" -ab 160k -ac 2 -ar 44100 -vn \"" + pathtosave + "\""
         subprocess.call(command, shell=True)
 
     # fait tout à partir du link (nom de méthode à modifier)
@@ -102,14 +95,31 @@ class GameEngine(object):
             # create a folder from the song title if it doesn't exist yet in the song folder
             os.makedirs("song/" + yt.title, exist_ok=True)
             wget.download(yt.thumbnail_url, out="song/" + yt.title)
-            self.DL_mp4(yt)
-            self.DL_mp4_nosound(yt)
-            self.mp4ToWav(yt)
+
+            # Download a youtube video in mp4 format from a youtube link without sound
+            yt.streams.filter().first().download(output_path="song/" + yt.title + "/", filename=yt.title)
+            # Download a youtube video in mp4 format from a youtube link without no sound
+            yt.streams.filter(only_video=True).first().download(output_path="song/" + yt.title + "/",
+                                                                filename=yt.title + "nosound")
+
             self.file = "song/" + yt.title + "/" + yt.title + ".wav"
-            self.evManager.Post(StateChangeEvent(STATE_PLAY))
-            self.gamescore = 0
+            self.mp4ToWav("song/" + yt.title + "/" + yt.title + ".mp4", self.file)
+
+
         except:
-            self.evManager.Post(StateChangeEvent(STATE_MENU))
+            ydl_opts = {
+                'format': 'mp4',
+                'outtmpl': "song/%(title)s/%(title)s.mp4",
+                'noplaylist': True,
+            }
+
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                video = ydl.extract_info(yt_link, download=True)
+            self.file = "song/" + video["title"] + "/" + video["title"] + ".wav"
+            self.mp4ToWav("song/" + video["title"] + "/" + video["title"] + ".mp4", self.file)
+
+        self.evManager.Post(StateChangeEvent(STATE_PLAY))
+        self.gamescore = 0
 
     def buttonReturn(self):
         self.evManager.Post(StateChangeEvent(STATE_MENU))
@@ -141,6 +151,7 @@ class GameEngine(object):
 
         elif isinstance(event, FileChooseEvent):
             self.file = event.file
+            self.musicnamelist = None
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
     def start_pause(self):
@@ -154,7 +165,7 @@ class GameEngine(object):
             pygame.mixer.music.unpause()
         self.pause = False
 
-    def home(self,):
+    def home(self, ):
         self.end_pause()
         self.evManager.Post(StateChangeEvent(STATE_MENU))
         pygame.mixer.music.stop()
@@ -170,7 +181,6 @@ class GameEngine(object):
         self.listInstruments = copy.deepcopy(self.saveListInstruments)
         self.evManager.Post(ResetPlayEvent())
         timer.reset()
-
 
     def instrumentNow(self, liste_beat, num_classe):
 
@@ -236,7 +246,7 @@ class GameEngine(object):
 
     def modifDifficulty(self, level):
         self.config['difficulty'] = level
-        with open('config.json','w') as config:
+        with open('config.json', 'w') as config:
             json.dump(self.config, config, indent=4)
 
     def run(self):
@@ -254,7 +264,7 @@ class GameEngine(object):
             elif self.state.peek() == STATE_EMPTYLIBRARY:
                 pass
             elif self.state.peek() == STATE_ENDGAME:
-                self.savebestscore()
+                pass
             elif self.state.peek() == STATE_CHOOSEFILE:
                 pass
             elif self.state.peek() == STATE_FILENOTFOUND:
@@ -300,10 +310,9 @@ class GameEngine(object):
                     return
             dictInstruments = library.json_to_dict(instruments)
 
-        if self.config["simplification"]:
-            dictInstruments = simplification(dictInstruments)
+        self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                 dictInstruments.items()]
 
-      
         if self.config['difficulty'] == 3:
             self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                      dictInstruments.items()]
@@ -324,8 +333,10 @@ class GameEngine(object):
                 [arrayallinstruments[0], arrayallinstruments[1], arrayallinstruments[2]])
             self.arrayInstruments = [np.sort(arrayallinstruments)]
 
-        self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
-                                 dictInstruments.items()]
+        if self.config["simplification"]:
+            self.arrayInstruments = simplification(self.arrayInstruments,timerange=self.config["timeRangeForSimplification"])
+            print('simplification')
+
         self.saveArrayInstruments = copy.deepcopy(self.arrayInstruments)
 
         pygame.mixer.init()
@@ -333,6 +344,7 @@ class GameEngine(object):
         self.duration = musicfile.getduration() * 1000  # ms
         self.gamescore = 0
         self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
+        print(self.listInstruments)
         self.saveListInstruments = copy.deepcopy(self.listInstruments)
         self.state.push(STATE_PLAY)
         timer.reset()
@@ -344,7 +356,7 @@ class GameEngine(object):
         elif self.state.peek() == STATE_LIBRARY:
             pass
         elif self.state.peek() == STATE_ENDGAME:
-            pass
+            self.savebestscore()
         elif self.state.peek() == STATE_CHOOSEFILE:
             pass
         elif self.state.peek() == STATE_EMPTYLIBRARY:
@@ -354,6 +366,7 @@ class GameEngine(object):
         elif self.state.peek() == STATE_PLAY:
             self.state.push(STATE_LOADING)
             threading.Thread(target=self.charginMusic).start()
+
 
 # State machine constants for the StateMachine class below
 STATE_MENU = 1
