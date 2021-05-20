@@ -55,6 +55,8 @@ class GraphicalView(object):
         self.cooldown = 1000
         self.last = timer.time()
 
+        self.positions = self.positions_difficuly()
+
         self.YOUTUBELINKTEXTBOX = None
         self.BUTTONYOUTUBELINK = None
         self.BUTTONRESET = None
@@ -84,17 +86,27 @@ class GraphicalView(object):
         return (beat.time < timer.time() + self.model.config["delta_excellent"]) & (
                 beat.time > timer.time() - self.model.config["delta_meh"])
 
+    def positions_difficuly(self):
+        middle = screen_width /2
+        if self.model.config['difficulty'] == 1:
+            return [middle]
+        elif self.model.config['difficulty'] == 2:
+            return [middle - 100, middle + 100]
+        elif self.model.config['difficulty'] == 3:
+            return [middle - 100, middle, middle + 100]
+
+
     # displays beats, their color depending on whether they are in the "excellent" range
     def drawInstruments(self):
         colors = [(166, 89, 89), (89, 89, 166), (166, 166, 89)]
         colorsExecellent = [(255, 0, 0), (0, 0, 255), (255, 255, 0)]
-        positions = [400, 500, 600]
+
         for i in range(len(self.instruments_state)):
             for beat in self.instruments_state[i]:
                 color = colors[i]
                 if self.isexcellent(beat):
                     color = colorsExecellent[i]
-                pygame.draw.circle(self.screen, color, (positions[i], beat.position), 25)
+                pygame.draw.circle(self.screen, color, (self.positions[i], beat.position), 25)
 
     def displaySucces(self, succes):
         police = pygame.font.Font(None, 72)
@@ -118,6 +130,28 @@ class GraphicalView(object):
         self.screen.blit(score, [screen_width - score.get_width(), 5])
         pygame.display.flip()
 
+    def displayBestScore(self):
+        police = pygame.font.Font(None, 50)
+        best_score_txt = "Best Score : " + (str(self.model.bestscore) if self.model.bestscore is not None else "N/A")
+        score = police.render(best_score_txt, True, pygame.Color(255, 255, 255))
+        self.screen.blit(score, [screen_width - score.get_width(), 55])
+        pygame.display.flip()
+
+    def displayDifficulty(self):
+        if self.model.config['difficulty'] == 1:
+            difficuly_txt = "Easy"
+            color = pygame.Color(0, 255, 0)
+        elif self.model.config['difficulty'] == 2:
+            difficuly_txt = "Medium"
+            color = pygame.Color(255, 127, 0)
+        elif self.model.config['difficulty'] == 3:
+            difficuly_txt = "Hard"
+            color = pygame.Color(255, 0, 0)
+
+        police = pygame.font.Font(None, 40)
+        difficulty = police.render("Difficulty : " + difficuly_txt, True, color)
+        self.screen.blit(difficulty, [5, 80])
+        pygame.display.flip()
     def notify(self, event):
         """
         Receive events posted to the message queue. 
@@ -138,6 +172,7 @@ class GraphicalView(object):
             if currentstate == STATE_LIBRARY:
                 self.renderlibrary()
             if currentstate == STATE_ENDGAME:
+                self.resetInstruments()
                 self.renderendgame()
             if currentstate == STATE_CHOOSEFILE:
                 self.renderChooseFile()
@@ -174,19 +209,24 @@ class GraphicalView(object):
 
         if self.a_pressed:
             pygame.draw.circle(self.screen, pygame.color.Color(255, 0, 0),
-                               [400, height - self.model.config["checkligne"]], 31, 6)
+                               [self.positions[0], height - self.model.config["checkligne"]], 31, 6)
         else:
-            pygame.draw.circle(self.screen, color, [400, height - self.model.config["checkligne"]], 25, 1)
-        if self.z_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255),
-                               [500, height - self.model.config["checkligne"]], 31, 6)
-        else:
-            pygame.draw.circle(self.screen, color, [500, height - self.model.config["checkligne"]], 25, 1)
-        if self.e_pressed:
-            pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0),
-                               [600, height - self.model.config["checkligne"]], 31, 6)
-        else:
-            pygame.draw.circle(self.screen, color, [600, height - self.model.config["checkligne"]], 25, 1)
+            pygame.draw.circle(self.screen, color, [self.positions[0], height - self.model.config["checkligne"]], 25, 1)
+
+        if self.model.config['difficulty'] in [2, 3]:
+            if self.z_pressed:
+                pygame.draw.circle(self.screen, pygame.color.Color(0, 0, 255),
+                                   [self.positions[1], height - self.model.config["checkligne"]], 31, 6)
+            else:
+                pygame.draw.circle(self.screen, color, [self.positions[1], height - self.model.config["checkligne"]], 25, 1)
+
+            if self.model.config['difficulty'] == 3:
+                if self.e_pressed:
+                    pygame.draw.circle(self.screen, pygame.color.Color(255, 255, 0),
+                                       [self.positions[2], height - self.model.config["checkligne"]], 31, 6)
+                else:
+                    pygame.draw.circle(self.screen, color, [self.positions[2], height - self.model.config["checkligne"]], 25, 1)
+
 
     def drawCheckLetters(self, height):
         color = (135, 206, 235)
@@ -196,9 +236,13 @@ class GraphicalView(object):
         letter_z = police.render("Z", True, pygame.Color(0, 0, 255))
         letter_e = police.render("E", True, pygame.Color(255, 255, 0))
 
-        self.screen.blit(letter_a, [385, height - self.model.config["checkligne"] + 25])
-        self.screen.blit(letter_z, [485, height - self.model.config["checkligne"] + 25])
-        self.screen.blit(letter_e, [585, height - self.model.config["checkligne"] + 25])
+        self.screen.blit(letter_a, [self.positions[0] - 15, height - self.model.config["checkligne"] + 25])
+
+        if self.model.config['difficulty'] in [2, 3]:
+            self.screen.blit(letter_z, [self.positions[1] - 15, height - self.model.config["checkligne"] + 25])
+
+            if self.model.config['difficulty'] == 3:
+                self.screen.blit(letter_e, [self.positions[2] - 15, height - self.model.config["checkligne"] + 25])
 
     def renderplay(self):
         """
@@ -211,6 +255,8 @@ class GraphicalView(object):
         self.BUTTONPAUSE.draw(self.screen)
         self.drawCheckCircles(screen_height)
         self.drawCheckLetters(screen_height)
+        self.displayScore()
+        self.displayBestScore()
 
         if not self.model.pause:
             for instrument in self.instruments_state:
@@ -240,6 +286,10 @@ class GraphicalView(object):
 
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
+        self.buttonEasy.draw(self.screen)
+        self.buttonMedium.draw(self.screen)
+        self.buttonHard.draw(self.screen)
+        self.displayDifficulty()
 
         self.YOUTUBELINKTEXTBOX.draw(self.screen)
         self.BUTTONYOUTUBELINK.draw(self.screen)
@@ -340,7 +390,13 @@ class GraphicalView(object):
 
         self.screen.blit(text, (375, 300))
 
+
         pygame.display.flip()
+
+
+
+
+
 
     def initialize(self):
         """
@@ -400,6 +456,34 @@ class GraphicalView(object):
                                                     colorLabel=(0, 0, 0),
                                                     placeHolder=pygameInterface.StyleButton(480, 380, 191, 64,
                                                                                             label="Library",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(255, 0, 0))
+                                                    )
+
+        self.buttonEasy = pygameInterface.Button(5, 10, 70, 70,
+                                                    label="Easy",
+                                                    color=(0, 255, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(5, 10, 70, 70,
+                                                                                            label="Easy",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(0, 255, 0))
+                                                    )
+        self.buttonMedium = pygameInterface.Button(5, 90, 70, 70,
+                                                    label="Medium",
+                                                    color=(255, 127, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(5, 90, 70, 70,
+                                                                                            label="Medium",
+                                                                                            color=(0, 0, 0),
+                                                                                            colorLabel=(255, 127, 0))
+                                                    )
+        self.buttonHard = pygameInterface.Button(5, 170, 70, 70,
+                                                    label="Hard",
+                                                    color=(255, 0, 0),
+                                                    colorLabel=(0, 0, 0),
+                                                    placeHolder=pygameInterface.StyleButton(5, 170, 70, 70,
+                                                                                            label="Hard",
                                                                                             color=(0, 0, 0),
                                                                                             colorLabel=(255, 0, 0))
                                                     )

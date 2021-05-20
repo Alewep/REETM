@@ -1,26 +1,21 @@
 {
-  "timeadvence" : 2000,
-
-  "delta_bad" : 150,
-  "delta_meh" : 100,
-  "delta_good" : 50,
-  "delta_excellent" : 25,
-
-  "score_fail" : -0.5,
-  "score_bad" : 0.25,
-  "score_meh" : 0.5,
-  "score_good" : 0.75,
-  "score_excellent" : 1,
-
-  "checkligne" : 150,
-
-  "keyslist" : ["pygame.K_a", "pygame.K_z", "pygame.K_e"],
-
-  "spleeter" : true,
-
-  "simplification" : true,
-
-  "difficulty" : 0 
-
-
+    "timeadvence": 2000,
+    "delta_bad": 150,
+    "delta_meh": 100,
+    "delta_good": 50,
+    "delta_excellent": 25,
+    "score_fail": -0.5,
+    "score_bad": 0.25,
+    "score_meh": 0.5,
+    "score_good": 0.75,
+    "score_excellent": 1,
+    "checkligne": 150,
+    "keyslist": [
+        "pygame.K_a",
+        "pygame.K_z",
+        "pygame.K_e"
+    ],
+    "spleeter": false,
+    "simplification": true,
+    "difficulty": 1
 }

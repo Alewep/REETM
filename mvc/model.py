@@ -63,6 +63,7 @@ class GameEngine(object):
         self.passTimeMusic = False
         self.duration = None
         self.musicnamelist = None
+        self.bestscore = None
 
         self.pause = False
 
@@ -181,10 +182,6 @@ class GameEngine(object):
     def inputVerifBeat(self, beat_time,
                        instrument_class):  # update score depending and returns the type of success (fail, bad, meh, good, excellent)
 
-        # margin time to determine score for a beat
-
-        # determine the list we work on (kicks list, snare list... )depending on the key pressed
-
         work_list = self.arrayInstruments[instrument_class]
 
         beat_to_delete = None
@@ -218,6 +215,7 @@ class GameEngine(object):
                         beat_to_delete = list_excellent[0]
 
         self.gamescore += score_to_add
+
         if beat_to_delete is not None:
             work_list = np.delete(work_list, np.where(work_list == beat_to_delete))
         return success_class
@@ -235,6 +233,11 @@ class GameEngine(object):
                 array_score = np.around(np.array([self.gamescore]), decimals=2)
                 np.savetxt(bestscorefilepath, array_score)
                 self.evManager.Post(newBestScoreEvent(self.gamescore))
+
+    def modifDifficulty(self, level):
+        self.config['difficulty'] = level
+        with open('config.json','w') as config:
+            json.dump(self.config, config, indent=4)
 
     def run(self):
 
@@ -299,6 +302,27 @@ class GameEngine(object):
 
         if self.config["simplification"]:
             dictInstruments = simplification(dictInstruments)
+
+      
+        if self.config['difficulty'] == 3:
+            self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                     dictInstruments.items()]
+
+        elif self.config['difficulty'] == 2:
+
+            arraykicksnare = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                              dictInstruments.items() if (instrument[0] in ['Kick', 'Snare'])]
+            arraykicksnare = np.concatenate([arraykicksnare[0], arraykicksnare[1]])
+
+            self.arrayInstruments = [np.sort(arraykicksnare)] + [(instrument[1] * 1000 + self.config["timeadvence"]) for
+                                                                 instrument in
+                                                                 dictInstruments.items() if (instrument[0] == 'Hihat')]
+        elif self.config['difficulty'] == 1:
+            arrayallinstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                   dictInstruments.items()]
+            arrayallinstruments = np.concatenate(
+                [arrayallinstruments[0], arrayallinstruments[1], arrayallinstruments[2]])
+            self.arrayInstruments = [np.sort(arrayallinstruments)]
 
         self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                  dictInstruments.items()]
