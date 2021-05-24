@@ -85,9 +85,11 @@ class Keyboard(object):
         if self.view.YOUTUBELINKTEXTBOX.clicked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.target = 1
 
+        if self.view.BUTTONPASTE.clicked(self.listEvent):
+            self.view.YOUTUBELINKTEXTBOX.text_typing(pyperclip.paste())
+
         if self.view.YOUTUBELINKTEXTBOX.target == 1:
             if event.type == pygame.KEYDOWN:
-                # if pygame.key.get_pressed()[pygame.K_BACKSPACE]:
                 if event.key == pygame.K_BACKSPACE:
                     self.view.YOUTUBELINKTEXTBOX.text_backspace()
                 else:
@@ -103,6 +105,7 @@ class Keyboard(object):
             self.model.process(self.view.YOUTUBELINKTEXTBOX.text)
         if self.view.BUTTONRESET.clicked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.reset()
+
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc

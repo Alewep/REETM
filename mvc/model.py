@@ -55,6 +55,7 @@ class GameEngine(object):
 
         self.time_start = None
         self.file = None
+        self.thumbnail = None
 
         self.arrayInstruments = None
         self.listInstruments = None
@@ -88,7 +89,7 @@ class GameEngine(object):
             # create a song folder if it doesn't exist yet
             os.makedirs("song", exist_ok=True)
 
-            # replace some character that will cause some issues
+            # replace some characters that will cause some issues in the video title
             yt.title = yt.title.replace("|", "-")
             yt.title = yt.title.replace(":", "")
             yt.title = yt.title.replace("/", "")
@@ -101,7 +102,6 @@ class GameEngine(object):
             # Download a youtube video in mp4 format from a youtube link without no sound
             yt.streams.filter(only_video=True).first().download(output_path="song/" + yt.title + "/",
                                                                 filename=yt.title + "nosound")
-
             self.file = "song/" + yt.title + "/" + yt.title + ".wav"
             self.mp4ToWav("song/" + yt.title + "/" + yt.title + ".mp4", self.file)
 
@@ -112,11 +112,25 @@ class GameEngine(object):
                 'outtmpl': "song/%(title)s/%(title)s.mp4",
                 'noplaylist': True,
             }
-
+            #download the youtube video
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 video = ydl.extract_info(yt_link, download=True)
+            # replace some characters that will cause some issues in the video title
+            video["title"] = video["title"].replace("|", "_")
+            video["title"] = video["title"].replace(":", " -")
+            video["title"] = video["title"].replace("/", "_")
+
+            # to get the link of the jpg format of the thumbnail instead of the webp format
+            video["thumbnail"] = video["thumbnail"].replace("_webp", "")
+            video["thumbnail"] = video["thumbnail"].replace("webp", "jpg")
+
             self.file = "song/" + video["title"] + "/" + video["title"] + ".wav"
             self.mp4ToWav("song/" + video["title"] + "/" + video["title"] + ".mp4", self.file)
+
+            # download the thumbnail
+            wget.download(video["thumbnail"], out="song/" + video["title"])
+            self.thumbnail = "song/" + video["title"] + "/maxresdefault.jpg"
+
 
         self.evManager.Post(StateChangeEvent(STATE_PLAY))
         self.gamescore = 0

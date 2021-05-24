@@ -65,6 +65,7 @@ class GraphicalView(object):
         self.BUTTONRESET = None
         self.BUTTONPAUSE = None
         self.PANELPAUSE = None
+        self.BUTTONPASTE = None
 
     # add a hit to the screen
     def resetplay(self):
@@ -254,7 +255,7 @@ class GraphicalView(object):
         """
         width, height = pygame.display.get_surface().get_size()
         self.screen.fill((0, 0, 0))
-
+        self.screen.blit(pygame.image.load(self.model.thumbnail), (0, 0))
         self.BUTTONPAUSE.draw(self.screen)
         self.drawCheckCircles(screen_height)
         self.drawCheckLetters(screen_height)
@@ -274,7 +275,6 @@ class GraphicalView(object):
         self.displayBestScore()
 
 
-
         # flip the display to show whatever we drew
         pygame.display.flip()
 
@@ -292,6 +292,7 @@ class GraphicalView(object):
         self.YOUTUBELINKTEXTBOX.draw(self.screen)
         self.BUTTONYOUTUBELINK.draw(self.screen)
         self.BUTTONRESET.draw(self.screen)
+        self.BUTTONPASTE.draw(self.screen)
 
         self.buttonMenuPlay.draw(self.screen)
         self.buttonLibrary.draw(self.screen)
@@ -314,7 +315,6 @@ class GraphicalView(object):
     def renderlibrary(self):
         self.songs_list = tkinterInterface.ComboBox(title="Library")
         self.songs_list.window.mainloop()
-
 
     def renderemptylibrary(self):
         window = tkinter.Tk()
@@ -500,6 +500,11 @@ class GraphicalView(object):
                                                         image="assets/DownloadButton.jpg",
                                                         placeHolder=pygameInterface.StyleButton(390, 900, 115, 30,
                                                                                                 image="assets/DownloadButtonSelect.jpg"))
+
+        self.BUTTONPASTE = pygameInterface.Button(377, 330, 41, 50,
+                                                        image="assets/PasteButton.png",
+                                                        placeHolder=pygameInterface.StyleButton(377, 330, 41, 50,
+                                                                                                image="assets/PasteButton.png"))
 
         self.BUTTONRESET = pygameInterface.Button(390, 1025, 115, 30,
                                                   image="assets/ClearButton.jpg",

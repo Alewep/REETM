@@ -15,9 +15,8 @@
         "pygame.K_z",
         "pygame.K_e"
     ],
-
     "spleeter": true,
     "simplification": true,
     "timeRangeForSimplification": 125,
-    "difficulty": 3
+    "difficulty": 1
 }
