@@ -124,21 +124,17 @@ class GraphicalView(object):
         if succes == 'excellent':
             texte = police.render("Excellent !", True, pygame.Color(0, 255, 0))
         self.screen.blit(texte, [10, 5])
-        pygame.display.flip()
 
     def displayScore(self):
         police = pygame.font.Font(None, 72)
         score_txt = 'Score : ' + str(self.model.gamescore)
         score = police.render(score_txt, True, pygame.Color(255, 255, 255))
         self.screen.blit(score, [screen_width - score.get_width(), 5])
-        pygame.display.flip()
-
     def displayBestScore(self):
         police = pygame.font.Font(None, 50)
         best_score_txt = "Best Score : " + (str(self.model.bestscore) if self.model.bestscore is not None else "N/A")
         score = police.render(best_score_txt, True, pygame.Color(255, 255, 255))
         self.screen.blit(score, [screen_width - score.get_width(), 55])
-        pygame.display.flip()
 
     def displayDifficulty(self):
         if self.model.config['difficulty'] == 1:
@@ -154,7 +150,6 @@ class GraphicalView(object):
         police = pygame.font.Font(None, 40)
         difficulty = police.render("Difficulty : " + difficuly_txt, True, color)
         self.screen.blit(difficulty, [5, 80])
-        pygame.display.flip()
     def notify(self, event):
         """
         Receive events posted to the message queue. 
@@ -251,7 +246,6 @@ class GraphicalView(object):
         Draw the current game state on screen.
         Does nothing if isinitialized == False (pygame.init failed)
         """
-        width, height = pygame.display.get_surface().get_size()
         self.screen.fill((0, 0, 0))
         #self.screen.blit(pygame.image.load(self.model.thumbnail), (0, 0))
         self.BUTTONPAUSE.draw(self.screen)
@@ -393,8 +387,6 @@ class GraphicalView(object):
             text = fontTitle.render("Loading...", True, (133, 193, 233))
 
         self.screen.blit(text, (375, 300))
-
-
         pygame.display.flip()
 
 
