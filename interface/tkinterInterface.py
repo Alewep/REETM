@@ -5,7 +5,7 @@ from addons import library
 
 class ComboBox(object):
 
-    def __init__(self,title=""):
+    def __init__(self,folderPath,title=""):
         self.window = Tk()  # create a Tk root window
         self.window.title(title)
         w = 300  # width for the Tk root
@@ -22,7 +22,7 @@ class ComboBox(object):
         # set the dimensions of the screen
         # and where it is placed
         self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
-        self.stockSongs = library.getFiles('preprocessed')
+        self.stockSongs = library.getFiles(folderPath)
         self.listeSongs = Combobox(self.window, values=self.stockSongs, state='readonly',width=w)
         self.listeSongs.pack()
         self.buttonconfirm = Button(text="confirmation")

@@ -6,13 +6,11 @@ from addons.ADTLib import ADT
 import json
 import copy
 from json import JSONEncoder
-import shutil
 
 
 def simplification(instruments, timerange=150):
     # time in milliseconds
     instruments = copy.deepcopy(instruments)
-    print(instruments)
     i = 0
     for instrument in instruments:
         simp = []
@@ -49,8 +47,10 @@ class NumpyArrayEncoder(JSONEncoder):
 
 class AutomaticBeats(object):
 
-    def __init__(self, filepath, spleeter=True, simplification=True):
+    def __init__(self, filepath, preprocessPath="preprocessed", spleeter=True, simplification=True):
+
         self.file = filepath
+        self.preprocessPath = preprocessPath
         self.spleeter = spleeter
         self.simplification = simplification
         self.instruments_dictionary = None
@@ -58,10 +58,10 @@ class AutomaticBeats(object):
     # creates preprocessed/music_name/drums.wav
     def preprocess(self):
         separator = Separator('spleeter:4stems')
-        separator.separate_to_file(self.file, 'preprocessed')
-        os.remove('preprocessed/' + self.getmusicname() + '/vocals.wav')
-        os.remove('preprocessed/' + self.getmusicname() + '/other.wav')
-        os.remove('preprocessed/' + self.getmusicname() + '/bass.wav')
+        separator.separate_to_file(self.file,self.preprocessPath)
+        os.remove(self.preprocessPath + "/music/vocals.wav")
+        os.remove(self.preprocessPath + "/music/other.wav")
+        os.remove(self.preprocessPath + "/music/bass.wav")
 
     def getmusicname(self):
         base = os.path.basename(self.file)
@@ -70,7 +70,7 @@ class AutomaticBeats(object):
     # returns tempo,duration and beats of drums.wav
     def getbeats(self):
         self.preprocess()
-        file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
+        file = self.preprocessPath + "/music/drums.wav"
         y, sr = librosa.load(file)
         onset_env = librosa.onset.onset_strength(y, sr=sr, aggregate=np.median)
         pulse = librosa.beat.plp(onset_envelope=onset_env, sr=sr)  # array de frames du rythme
@@ -82,7 +82,7 @@ class AutomaticBeats(object):
 
     def getduration(self):
         if self.spleeter:
-            file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
+            file = self.preprocessPath + "/music/drums.wav"
             if os.path.exists(file):
                 y, sr = librosa.load(file)
                 return librosa.get_duration(y, sr)
@@ -99,33 +99,18 @@ class AutomaticBeats(object):
             # spleeter mode
             if self.spleeter:
                 self.preprocess()
-                file = 'preprocessed/' + self.getmusicname() + '/drums.wav'
+                file = self.preprocessPath + "/music/drums.wav"
             else:
                 file = self.file
             self.instruments_dictionary = ADT([file])[0]
-            # simplifaction mode
-
-            if self.simplification:
-                for _, instrument in self.instruments_dictionary.items():
-                    for time in instrument:
-                        mask = (time - 1 <= instrument) & (instrument <= time + 1)
-                        moyenne = instrument[mask].mean()
-                        instrument = np.append(instrument[np.logical_not(mask)], moyenne)
         return self.instruments_dictionary
 
-    def savejson(self):
+    def savejson(self, savePath):
         if self.spleeter:
-            with open('preprocessed/' + self.getmusicname() + '/instrumentswithspleeter.json', 'w') as outfile:
+            with open(savePath, 'w') as outfile:
                 json.dump(self.instruments_dictionary, outfile, cls=NumpyArrayEncoder)
         else:
-            if not os.path.isdir("preprocessed"):
-                os.mkdir("preprocessed")
-            if not os.path.isdir("preprocessed/" + self.getmusicname()):
-                os.mkdir("preprocessed/" + self.getmusicname())
-            with open('preprocessed/' + self.getmusicname() + '/instrumentswithoutspleeter.json', 'w') as outfile:
+            if not os.path.isdir(savePath):
+                os.mkdir(savePath)
+            with open(savePath, 'w') as outfile:
                 json.dump(self.instruments_dictionary, outfile, cls=NumpyArrayEncoder)
-
-    def copy(self):
-        src = self.file
-        dest = "preprocessed/" + self.getmusicname() + "/" + self.getmusicname() + ".wav"
-        shutil.copyfile(src, dest)

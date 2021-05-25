@@ -5,8 +5,6 @@ from mvc.eventmanager import *
 from mvc import model
 
 
-
-
 class Keyboard(object):
     """
     Handles keyboard input.
@@ -59,12 +57,11 @@ class Keyboard(object):
                     if currentstate == model.STATE_FILENOTFOUND:
                         self.keydownfilenotfound(event)
 
-
     def keydownmenu(self, event):
         if self.view.buttonMenuPlay.clicked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_CHOOSEFILE))
         if self.view.buttonLibrary.clicked(self.listEvent):
-            if os.path.isdir('preprocessed'):
+            if os.path.isdir(model.PATHOFLIBRARY):
                 self.evManager.Post(StateChangeEvent(model.STATE_LIBRARY))
             else:
                 self.evManager.Post(StateChangeEvent(model.STATE_EMPTYLIBRARY))
@@ -102,10 +99,9 @@ class Keyboard(object):
                             self.view.YOUTUBELINKTEXTBOX.text_typing(event.unicode)
 
         if self.view.BUTTONYOUTUBELINK.clicked(self.listEvent):
-            self.model.process(self.view.YOUTUBELINKTEXTBOX.text)
+            self.model.loading(self.model.youtubeProcess,args=[self.view.YOUTUBELINKTEXTBOX.text])
         if self.view.BUTTONRESET.clicked(self.listEvent):
             self.view.YOUTUBELINKTEXTBOX.reset()
-
 
     def keydownplay(self, event):
         # handle key down events, initialize (depending on which key is pressed) an instance of InputEvent with an integer 0=first instrument, etc
@@ -161,5 +157,3 @@ class Keyboard(object):
     def keydownendgame(self, event):
         if self.view.buttonMenuReturn.clicked(self.listEvent):
             self.evManager.Post(StateChangeEvent(model.STATE_MENU))
-
-

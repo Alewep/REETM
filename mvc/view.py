@@ -58,7 +58,6 @@ class GraphicalView(object):
         self.last = timer.time()
 
         self.positions = self.positions_difficuly()
-        print(self.positions)
 
         self.YOUTUBELINKTEXTBOX = None
         self.BUTTONYOUTUBELINK = None
@@ -73,7 +72,6 @@ class GraphicalView(object):
         self.message = None
 
     def addInstrument(self, instrument, numberclass):
-        print("numberclass:",numberclass)
         if numberclass + 1 > len(self.instruments_state):
             for i in range(len(self.instruments_state), numberclass + 1):
                 self.instruments_state.append([])
@@ -255,7 +253,7 @@ class GraphicalView(object):
         """
         width, height = pygame.display.get_surface().get_size()
         self.screen.fill((0, 0, 0))
-        self.screen.blit(pygame.image.load(self.model.thumbnail), (0, 0))
+        #self.screen.blit(pygame.image.load(self.model.thumbnail), (0, 0))
         self.BUTTONPAUSE.draw(self.screen)
         self.drawCheckCircles(screen_height)
         self.drawCheckLetters(screen_height)
@@ -313,7 +311,7 @@ class GraphicalView(object):
         top.destroy()
 
     def renderlibrary(self):
-        self.songs_list = tkinterInterface.ComboBox(title="Library")
+        self.songs_list = tkinterInterface.ComboBox(folderPath=PATHOFLIBRARY,title="Library")
         self.songs_list.window.mainloop()
 
     def renderemptylibrary(self):

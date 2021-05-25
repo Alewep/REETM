@@ -16,6 +16,9 @@ from pytube import YouTube
 import youtube_dl
 import moviepy
 
+PATHOFLIBRARY = "Library"
+PREPROCESSEDPATH = "preprocessed"
+
 
 class Beat(object):
     def __init__(self, time):
@@ -42,6 +45,49 @@ class Beat(object):
         self.position = durationLife * self.speed()
 
 
+def mp4ToWav(pathtosource, pathtosave):
+    command = "ffmpeg -y -i \"" + pathtosource + "\" -ab 160k -ac 2 -ar 44100 -vn \"" + pathtosave + "\""
+    subprocess.call(command, shell=True)
+
+
+class Music(object):
+    def __init__(self, libraryPath, musicName):
+        self.libraryPath = libraryPath
+        self.musicName = musicName
+        self.videoFileName = "video"
+        self.musicFileName = "music"
+        self.thumbnailFileName = "thumbnail"
+        self.dataFileName = "data"
+        self.dataFileNameWithoutSpleeter = "dataWithoutSpleeter"
+        self.bestScoreFileName = "bestScore"
+
+    def pathOfMusicFolder(self):
+        return self.libraryPath + "/" + self.musicName
+
+    def videoPath(self):
+        extension = ".mp4"
+        return self.pathOfMusicFolder() + "/" + self.videoFileName + extension
+
+    def musicPath(self):
+        extension = ".wav"
+        return self.pathOfMusicFolder() + "/" + self.musicFileName + extension
+
+    def thumbnailPath(self):
+        extension = ".jpg"
+        return self.pathOfMusicFolder() + "/" + self.thumbnailFileName + extension
+
+    def jsonPath(self, spleeter=True):
+        if spleeter:
+            fileName = self.dataFileName
+        else:
+            fileName = self.dataFileNameWithoutSpleeter
+
+        return self.pathOfMusicFolder() + "/" + fileName + ".json"
+
+    def bestScorePath(self):
+        return self.pathOfMusicFolder() + "/" + self.bestScoreFileName + ".csv"
+
+
 class GameEngine(object):
 
     def __init__(self, evManager):
@@ -54,8 +100,7 @@ class GameEngine(object):
         # variable for game state
 
         self.time_start = None
-        self.file = None
-        self.thumbnail = None
+        self.music = None
 
         self.arrayInstruments = None
         self.listInstruments = None
@@ -65,7 +110,7 @@ class GameEngine(object):
 
         self.passTimeMusic = False
         self.duration = None
-        self.musicnamelist = None
+        self.file = None
         self.bestscore = None
 
         self.pause = False
@@ -76,43 +121,38 @@ class GameEngine(object):
         self.running = False
         self.state = StateMachine()
 
-    @staticmethod
-    def mp4ToWav(pathtosource, pathtosave):
-        command = "ffmpeg -y -i \"" + pathtosource + "\" -ab 160k -ac 2 -ar 44100 -vn \"" + pathtosave + "\""
-        subprocess.call(command, shell=True)
-
     # fait tout à partir du link (nom de méthode à modifier)
-    def process(self, yt_link):
+    def youtubeProcess(self, yt_link):
         try:
             yt = YouTube(yt_link)
 
             # create a song folder if it doesn't exist yet
-            os.makedirs("song", exist_ok=True)
+            os.makedirs(PATHOFLIBRARY, exist_ok=True)
 
             # replace some characters that will cause some issues in the video title
             yt.title = yt.title.replace("|", "-")
             yt.title = yt.title.replace(":", "")
             yt.title = yt.title.replace("/", "")
             # create a folder from the song title if it doesn't exist yet in the song folder
-            os.makedirs("song/" + yt.title, exist_ok=True)
-            wget.download(yt.thumbnail_url, out="song/" + yt.title)
+            self.music = Music(PATHOFLIBRARY, yt.title)
+
+            os.makedirs(self.music.pathOfMusicFolder(), exist_ok=True)
+            wget.download(yt.thumbnail_url, out=self.music.thumbnailPath())
 
             # Download a youtube video in mp4 format from a youtube link without sound
-            yt.streams.filter().first().download(output_path="song/" + yt.title + "/", filename=yt.title)
-            # Download a youtube video in mp4 format from a youtube link without no sound
-            yt.streams.filter(only_video=True).first().download(output_path="song/" + yt.title + "/",
-                                                                filename=yt.title + "nosound")
-            self.file = "song/" + yt.title + "/" + yt.title + ".wav"
-            self.mp4ToWav("song/" + yt.title + "/" + yt.title + ".mp4", self.file)
+            yt.streams.filter().first().download(output_path=self.music.pathOfMusicFolder(),
+                                                 filename=self.music.videoFileName)
+            mp4ToWav(self.music.videoPath(), self.music.musicPath())
+
 
 
         except:
             ydl_opts = {
                 'format': 'mp4',
-                'outtmpl': "song/%(title)s/%(title)s.mp4",
+                'outtmpl': PATHOFLIBRARY + "/%(title)s/video.mp4",
                 'noplaylist': True,
             }
-            #download the youtube video
+            # download the youtube video
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 video = ydl.extract_info(yt_link, download=True)
             # replace some characters that will cause some issues in the video title
@@ -124,16 +164,17 @@ class GameEngine(object):
             video["thumbnail"] = video["thumbnail"].replace("_webp", "")
             video["thumbnail"] = video["thumbnail"].replace("webp", "jpg")
 
-            self.file = "song/" + video["title"] + "/" + video["title"] + ".wav"
-            self.mp4ToWav("song/" + video["title"] + "/" + video["title"] + ".mp4", self.file)
+            self.music = Music(PATHOFLIBRARY, video["title"])
+            mp4ToWav(self.music.videoPath(), self.music.musicPath())
 
             # download the thumbnail
-            wget.download(video["thumbnail"], out="song/" + video["title"])
-            self.thumbnail = "song/" + video["title"] + "/maxresdefault.jpg"
+            wget.download(video["thumbnail"], out=self.music.thumbnailPath())
 
+        self.charginMusic()
 
-        self.evManager.Post(StateChangeEvent(STATE_PLAY))
-        self.gamescore = 0
+    def loading(self, target, args=[]):
+        self.state.push(STATE_LOADING)
+        threading.Thread(target=target, args=args).start()
 
     def buttonReturn(self):
         self.evManager.Post(StateChangeEvent(STATE_MENU))
@@ -160,7 +201,7 @@ class GameEngine(object):
 
         elif isinstance(event, FileChooseListEvent):
             self.file = None
-            self.musicnamelist = event.file
+            self.music = Music(PATHOFLIBRARY, event.file)
             self.evManager.Post(StateChangeEvent(STATE_PLAY))
 
         elif isinstance(event, FileChooseEvent):
@@ -246,7 +287,7 @@ class GameEngine(object):
 
     def savebestscore(self):
         musicfile = AutomaticBeats(self.file, self.config["spleeter"])
-        bestscorefilepath = "preprocessed/" + musicfile.getmusicname() + "/bestscore.csv"
+        bestscorefilepath = self.music.bestScorePath()
         if not os.path.exists(bestscorefilepath):
             array_score = np.around(np.array([self.gamescore]), decimals=2)
             np.savetxt(bestscorefilepath, array_score)
@@ -299,30 +340,26 @@ class GameEngine(object):
                 self.running = False
 
     def charginMusic(self):
+        print("charging")
         self.passTimeMusic = False
         if self.file is not None:
-            musicfile = AutomaticBeats(self.file, self.config["spleeter"])
+            # place music to a other directory into Library
+            name, ext = os.path.splitext(os.path.basename(self.file))
+            self.music = Music(PATHOFLIBRARY, name)
+            library.placeInLibrary(self.file, self.music.musicPath())
+            musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
+                                       spleeter=self.config["spleeter"])
             dictInstruments = musicfile.getinstruments()
-            musicfile.savejson()
-            musicfile.copy()
-        if self.musicnamelist is not None:
-            self.file = "preprocessed/" + self.musicnamelist + "/" + self.musicnamelist + ".wav"
-            musicfile = AutomaticBeats(self.file, self.config["spleeter"])
-            if self.config["spleeter"]:
-                path = "preprocessed/" + self.musicnamelist + "/instrumentswithspleeter.json"
-                if os.path.exists(path):
-                    instruments = path
-                else:
-                    self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
-                    return
+            musicfile.savejson(self.music.jsonPath())
+        if self.music is not None:
+            musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
+                                       spleeter=self.config["spleeter"])
+
+            if not os.path.exists(self.music.jsonPath(spleeter=self.config["spleeter"])):
+                dictInstruments = musicfile.getinstruments()
+                musicfile.savejson(self.music.jsonPath())
             else:
-                path = "preprocessed/" + self.musicnamelist + "/instrumentswithoutspleeter.json"
-                if os.path.exists(path):
-                    instruments = path
-                else:
-                    self.evManager.Post(StateChangeEvent(STATE_FILENOTFOUND))
-                    return
-            dictInstruments = library.json_to_dict(instruments)
+                dictInstruments = library.json_to_dict((self.music.jsonPath(spleeter=self.config["spleeter"])))
 
         self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                  dictInstruments.items()]
@@ -348,17 +385,18 @@ class GameEngine(object):
             self.arrayInstruments = [np.sort(arrayallinstruments)]
 
         if self.config["simplification"]:
-            self.arrayInstruments = simplification(self.arrayInstruments,timerange=self.config["timeRangeForSimplification"])
-            print('simplification')
+            self.arrayInstruments = simplification(self.arrayInstruments,
+                                                   timerange=self.config["timeRangeForSimplification"])
+
 
         self.saveArrayInstruments = copy.deepcopy(self.arrayInstruments)
 
         pygame.mixer.init()
-        pygame.mixer.music.load(self.file)
+
+        pygame.mixer.music.load(self.music.musicPath())
         self.duration = musicfile.getduration() * 1000  # ms
         self.gamescore = 0
         self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
-        print(self.listInstruments)
         self.saveListInstruments = copy.deepcopy(self.listInstruments)
         self.state.push(STATE_PLAY)
         timer.reset()
@@ -378,8 +416,7 @@ class GameEngine(object):
         elif self.state.peek() == STATE_FILENOTFOUND:
             pass
         elif self.state.peek() == STATE_PLAY:
-            self.state.push(STATE_LOADING)
-            threading.Thread(target=self.charginMusic).start()
+            self.loading(target=self.charginMusic)
 
 
 # State machine constants for the StateMachine class below
