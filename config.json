@@ -18,5 +18,5 @@
     "spleeter": true,
     "simplification": true,
     "timeRangeForSimplification": 125,
-    "difficulty": 1
+    "difficulty": 3
 }

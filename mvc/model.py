@@ -14,10 +14,10 @@ import wget
 import subprocess
 from pytube import YouTube
 import youtube_dl
-import moviepy
 
 PATHOFLIBRARY = "Library"
 PREPROCESSEDPATH = "preprocessed"
+
 
 
 class Beat(object):
@@ -115,11 +115,27 @@ class GameEngine(object):
 
         self.pause = False
 
+        self.timeVideoCheckPoint = timer.time()
+        self.passVideo = False
+
         # general
         self.evManager = evManager
         evManager.RegisterListener(self)
         self.running = False
         self.state = StateMachine()
+
+    def getMusicRessources(self, key):
+        path = None
+        if key == "video":
+            path = self.music.videoPath()
+        elif key == "music":
+            path = self.music.musicPath()
+        elif key == "thumbnail":
+            path = self.music.thumbnailPath()
+
+        if os.path.exists(path):
+            return path
+        return None
 
     # fait tout à partir du link (nom de méthode à modifier)
     def youtubeProcess(self, yt_link):
@@ -143,34 +159,36 @@ class GameEngine(object):
             yt.streams.filter().first().download(output_path=self.music.pathOfMusicFolder(),
                                                  filename=self.music.videoFileName)
             mp4ToWav(self.music.videoPath(), self.music.musicPath())
-
-
+            self.charginMusic()
 
         except:
-            ydl_opts = {
-                'format': 'mp4',
-                'outtmpl': PATHOFLIBRARY + "/%(title)s/video.mp4",
-                'noplaylist': True,
-            }
-            # download the youtube video
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                video = ydl.extract_info(yt_link, download=True)
-            # replace some characters that will cause some issues in the video title
-            video["title"] = video["title"].replace("|", "_")
-            video["title"] = video["title"].replace(":", " -")
-            video["title"] = video["title"].replace("/", "_")
 
-            # to get the link of the jpg format of the thumbnail instead of the webp format
-            video["thumbnail"] = video["thumbnail"].replace("_webp", "")
-            video["thumbnail"] = video["thumbnail"].replace("webp", "jpg")
+            try:
+                ydl_opts = {
+                    'format': 'mp4',
+                    'outtmpl': PATHOFLIBRARY + "/%(title)s/video.mp4",
+                    'noplaylist': True,
+                }
+                # download the youtube video
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    video = ydl.extract_info(yt_link, download=True)
+                # replace some characters that will cause some issues in the video title
+                video["title"] = video["title"].replace("|", "_")
+                video["title"] = video["title"].replace(":", " -")
+                video["title"] = video["title"].replace("/", "_")
 
-            self.music = Music(PATHOFLIBRARY, video["title"])
-            mp4ToWav(self.music.videoPath(), self.music.musicPath())
+                # to get the link of the jpg format of the thumbnail instead of the webp format
+                video["thumbnail"] = video["thumbnail"].replace("_webp", "")
+                video["thumbnail"] = video["thumbnail"].replace("webp", "jpg")
 
-            # download the thumbnail
-            wget.download(video["thumbnail"], out=self.music.thumbnailPath())
+                self.music = Music(PATHOFLIBRARY, video["title"])
+                mp4ToWav(self.music.videoPath(), self.music.musicPath())
 
-        self.charginMusic()
+                # download the thumbnail
+                wget.download(video["thumbnail"], out=self.music.thumbnailPath())
+                self.charginMusic()
+            except:
+                self.evManager.Post(StateChangeEvent(STATE_MENU))
 
     def loading(self, target, args=[]):
         self.state.push(STATE_LOADING)
@@ -236,6 +254,7 @@ class GameEngine(object):
         self.listInstruments = copy.deepcopy(self.saveListInstruments)
         self.evManager.Post(ResetPlayEvent())
         timer.reset()
+
 
     def instrumentNow(self, liste_beat, num_classe):
 
@@ -340,66 +359,73 @@ class GameEngine(object):
                 self.running = False
 
     def charginMusic(self):
-        print("charging")
-        self.passTimeMusic = False
-        if self.file is not None:
-            # place music to a other directory into Library
-            name, ext = os.path.splitext(os.path.basename(self.file))
-            self.music = Music(PATHOFLIBRARY, name)
-            library.placeInLibrary(self.file, self.music.musicPath())
-            musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
-                                       spleeter=self.config["spleeter"])
-            dictInstruments = musicfile.getinstruments()
-            musicfile.savejson(self.music.jsonPath())
-        if self.music is not None:
-            musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
-                                       spleeter=self.config["spleeter"])
-
-            if not os.path.exists(self.music.jsonPath(spleeter=self.config["spleeter"])):
+        try:
+            self.passTimeMusic = False
+            if self.file is not None:
+                # place music to a other directory into Library
+                name, ext = os.path.splitext(os.path.basename(self.file))
+                self.music = Music(PATHOFLIBRARY, name)
+                library.placeInLibrary(self.file, self.music.musicPath())
+                musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
+                                           spleeter=self.config["spleeter"])
                 dictInstruments = musicfile.getinstruments()
                 musicfile.savejson(self.music.jsonPath())
-            else:
-                dictInstruments = library.json_to_dict((self.music.jsonPath(spleeter=self.config["spleeter"])))
+            if self.music is not None:
+                musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
+                                           spleeter=self.config["spleeter"])
 
-        self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
-                                 dictInstruments.items()]
+                if not os.path.exists(self.music.jsonPath(spleeter=self.config["spleeter"])):
+                    dictInstruments = musicfile.getinstruments()
+                    musicfile.savejson(self.music.jsonPath())
+                else:
+                    dictInstruments = library.json_to_dict((self.music.jsonPath(spleeter=self.config["spleeter"])))
 
-        if self.config['difficulty'] == 3:
             self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                      dictInstruments.items()]
 
-        elif self.config['difficulty'] == 2:
+            if self.config['difficulty'] == 3:
+                self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                         dictInstruments.items()]
 
-            arraykicksnare = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
-                              dictInstruments.items() if (instrument[0] in ['Kick', 'Snare'])]
-            arraykicksnare = np.concatenate([arraykicksnare[0], arraykicksnare[1]])
+            elif self.config['difficulty'] == 2:
 
-            self.arrayInstruments = [np.sort(arraykicksnare)] + [(instrument[1] * 1000 + self.config["timeadvence"]) for
-                                                                 instrument in
-                                                                 dictInstruments.items() if (instrument[0] == 'Hihat')]
-        elif self.config['difficulty'] == 1:
-            arrayallinstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
-                                   dictInstruments.items()]
-            arrayallinstruments = np.concatenate(
-                [arrayallinstruments[0], arrayallinstruments[1], arrayallinstruments[2]])
-            self.arrayInstruments = [np.sort(arrayallinstruments)]
+                arraykicksnare = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                  dictInstruments.items() if (instrument[0] in ['Kick', 'Snare'])]
+                arraykicksnare = np.concatenate([arraykicksnare[0], arraykicksnare[1]])
 
-        if self.config["simplification"]:
-            self.arrayInstruments = simplification(self.arrayInstruments,
-                                                   timerange=self.config["timeRangeForSimplification"])
+                self.arrayInstruments = [np.sort(arraykicksnare)] + [(instrument[1] * 1000 + self.config["timeadvence"])
+                                                                     for
+                                                                     instrument in
+                                                                     dictInstruments.items() if
+                                                                     (instrument[0] == 'Hihat')]
+            elif self.config['difficulty'] == 1:
+                arrayallinstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
+                                       dictInstruments.items()]
+                arrayallinstruments = np.concatenate(
+                    [arrayallinstruments[0], arrayallinstruments[1], arrayallinstruments[2]])
+                self.arrayInstruments = [np.sort(arrayallinstruments)]
 
+            if self.config["simplification"]:
+                self.arrayInstruments = simplification(self.arrayInstruments,
+                                                       timerange=self.config["timeRangeForSimplification"])
 
-        self.saveArrayInstruments = copy.deepcopy(self.arrayInstruments)
+            self.saveArrayInstruments = copy.deepcopy(self.arrayInstruments)
+            if os.path.exists("preprocessed/" + musicfile.getmusicname() + "/bestscore.csv"):
+                self.bestscore = np.loadtxt("preprocessed/" + musicfile.getmusicname() + "/bestscore.csv")
+            pygame.mixer.init()
 
-        pygame.mixer.init()
+            pygame.mixer.music.load(self.music.musicPath())
 
-        pygame.mixer.music.load(self.music.musicPath())
-        self.duration = musicfile.getduration() * 1000  # ms
-        self.gamescore = 0
-        self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
-        self.saveListInstruments = copy.deepcopy(self.listInstruments)
-        self.state.push(STATE_PLAY)
-        timer.reset()
+            self.duration = musicfile.getduration() * 1000  # ms
+            self.gamescore = 0
+            self.listInstruments = [instrument.tolist() for instrument in self.arrayInstruments]
+            self.saveListInstruments = copy.deepcopy(self.listInstruments)
+            self.state.push(STATE_PLAY)
+            timer.reset()
+            self.timeVideoCheckPoint = timer.time()
+            self.passVideo = False
+        except:
+            self.state.push(STATE_MENU)
 
     def initialize(self):
 

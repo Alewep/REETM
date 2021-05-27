@@ -94,7 +94,7 @@ class AutomaticBeats(object):
                 file = self.preprocessPath + "/music/drums.wav"
             else:
                 file = self.file
-            self.instruments_dictionary = ADT([file])[0]
+            self.instruments_dictionary = ADT([file])
         return self.instruments_dictionary
 
     def savejson(self, savePath):
