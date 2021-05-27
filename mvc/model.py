@@ -410,8 +410,8 @@ class GameEngine(object):
                                                        timerange=self.config["timeRangeForSimplification"])
 
             self.saveArrayInstruments = copy.deepcopy(self.arrayInstruments)
-            if os.path.exists("preprocessed/" + musicfile.getmusicname() + "/bestscore.csv"):
-                self.bestscore = np.loadtxt("preprocessed/" + musicfile.getmusicname() + "/bestscore.csv")
+            if os.path.exists(self.music.bestScorePath()):
+                self.bestscore = np.loadtxt(self.music.bestScorePath())
             pygame.mixer.init()
 
             pygame.mixer.music.load(self.music.musicPath())
