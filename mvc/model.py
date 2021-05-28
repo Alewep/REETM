@@ -19,7 +19,6 @@ PATHOFLIBRARY = "Library"
 PREPROCESSEDPATH = "preprocessed"
 
 
-
 class Beat(object):
     def __init__(self, time):
         self.time = time
@@ -255,7 +254,6 @@ class GameEngine(object):
         self.evManager.Post(ResetPlayEvent())
         timer.reset()
 
-
     def instrumentNow(self, liste_beat, num_classe):
 
         if (len(liste_beat) > 0) and (timer.time() >= (liste_beat[0] - self.config["timeadvence"])):
@@ -370,7 +368,8 @@ class GameEngine(object):
                                            spleeter=self.config["spleeter"])
                 dictInstruments = musicfile.getinstruments()
                 musicfile.savejson(self.music.jsonPath())
-            if self.music is not None:
+
+            elif self.music is not None:
                 musicfile = AutomaticBeats(self.music.musicPath(), preprocessPath=PREPROCESSEDPATH,
                                            spleeter=self.config["spleeter"])
 
@@ -378,7 +377,7 @@ class GameEngine(object):
                     dictInstruments = musicfile.getinstruments()
                     musicfile.savejson(self.music.jsonPath())
                 else:
-                    dictInstruments = library.json_to_dict((self.music.jsonPath(spleeter=self.config["spleeter"])))
+                    dictInstruments = library.json_to_dict(self.music.jsonPath(spleeter=self.config["spleeter"]))
 
             self.arrayInstruments = [(instrument[1] * 1000 + self.config["timeadvence"]) for instrument in
                                      dictInstruments.items()]
