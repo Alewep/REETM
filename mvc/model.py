@@ -442,6 +442,7 @@ class GameEngine(object):
             pass
         elif self.state.peek() == STATE_PLAY:
             self.loading(target=self.charginMusic)
+            self.state.push(STATE_LOADING)
 
 
 # State machine constants for the StateMachine class below
