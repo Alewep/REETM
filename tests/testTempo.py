@@ -11,7 +11,7 @@ y, sr = librosa.load(filename, duration=30)  # import, duration en secondes
 onset_env = librosa.onset.onset_strength(y, sr=sr, aggregate=np.median)  # force du signal (?)
 tempo, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)  # estimation du tempo, array de frames du rythme
 
-print(tempo, beats)
+
 ## si on ne spécifie pas units=time
 hop_length = 512
 times = librosa.times_like(onset_env, sr=sr, hop_length=hop_length)

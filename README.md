@@ -16,6 +16,7 @@ or
 
 ```
 sudo apt-get install xclip
+sudo apt-get install ffmpeg
 conda env remove -n envReetm
 conda env create -f reetmEnv.yml
 ```

@@ -38,4 +38,3 @@ class AutomaticBeats(object) :
         return drum_onsets
 
 amazonia = AutomaticBeats('/home/adrien/TER/amazonia.mp3')
-print(amazonia.getinstruments())

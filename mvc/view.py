@@ -68,6 +68,7 @@ class GraphicalView(object):
 
     # add a hit to the screen
     def resetplay(self):
+        self.video = None
         self.instruments_state = []
         self.message = None
 
@@ -162,10 +163,10 @@ class GraphicalView(object):
             # shut down the pygame graphics
             self.isinitialized = False
             pygame.quit()
-        elif isinstance(event, StateChangeEvent):
-            if event.state == STATE_PLAY:
-                self.initializeVideo()
 
+        if isinstance(event, StateChangeEvent):
+            if event.state == STATE_PLAY:
+                self.video = None
         elif isinstance(event, TickEvent):
             currentstate = self.model.state.peek()
             if currentstate == STATE_MENU:
@@ -175,6 +176,7 @@ class GraphicalView(object):
             if currentstate == STATE_LIBRARY:
                 self.renderlibrary()
             if currentstate == STATE_ENDGAME:
+                self.video = None
                 self.renderendgame()
             if currentstate == STATE_CHOOSEFILE:
                 self.renderChooseFile()
@@ -198,10 +200,8 @@ class GraphicalView(object):
                 self.e_pressed = event.pressed
         elif isinstance(event, newBestScoreEvent):
             self.rendernewbestscore(event.newbestscore)
-
         elif isinstance(event, StateChangeEvent) | isinstance(event, ResetPlayEvent):
             if (isinstance(event, ResetPlayEvent)) or (event.state == STATE_PLAY):
-                self.resetplay()
                 self.initializeVideo()
 
     # displays the "check" circles, their outline becoming colored and thicker if you press the key corresponding to their instrument
@@ -253,10 +253,10 @@ class GraphicalView(object):
         Does nothing if isinitialized == False (pygame.init failed)
         """
         self.screen.fill((0, 0, 0))
-
-        if self.video is not None :
-
-            self.video.update(time=timer.time() - self.model.config["timeadvence"] )
+        if self.video is None:
+            self.initializeVideo()
+        else:
+            self.video.update(time=timer.time() - self.model.config["timeadvence"])
             self.video.draw(self.screen)
 
         self.BUTTONPAUSE.draw(self.screen)
@@ -403,7 +403,7 @@ class GraphicalView(object):
         video_path = self.model.getMusicRessources('video')
         if video_path is not None:
             self.video = pygame.sprite.Group()
-            self.video.add(pygameInterface.VideoSprite(self.screen.get_rect(topleft=(0, 0)), video_path))
+            self.video.add(pygameInterface.VideoSprite(self.screen.get_rect(), video_path))
 
     def initialize(self):
         """
@@ -514,6 +514,5 @@ class GraphicalView(object):
         self.BUTTONPAUSE = pygameInterface.Button(600, 5, 104, 90, image="assets/pause.png",
                                                   placeHolder=pygameInterface.StyleButton(600, 5, 104, 90,
                                                                                           image="assets/holdpause.png"))
-
 
         self.isinitialized = True

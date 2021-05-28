@@ -1,6 +1,17 @@
 import pygame
+import subprocess
+import os
+import moviepy.editor
+import moviepy.video.fx.all
+import numpy as np
 
 pygame.init()
+
+
+def _scale(im, nR, nC):
+    nR0 = len(im)  # source number of rows
+    nC0 = len(im[0])  # source number of columns
+    return np.array([[im[int(nR0 * r / nR)][int(nC0 * c / nC)] for c in range(nC)] for r in range(nR)])
 
 
 class StyleButton(object):
@@ -24,7 +35,6 @@ class StyleButton(object):
     def _surface(self):
         return pygame.Surface((self.width, self.height))
 
-
     def draw(self, screen):
         surfaceButton = self._surface()
         if self.image is not None:
@@ -43,7 +53,7 @@ class StyleButton(object):
 class Button(StyleButton):
     def __init__(self, left, top, width, height, label=None, image=None,
                  legend=None, color=(255, 255, 255), colorLabel=(0, 0, 0), fontLabel=pygame.font.Font(None, 25),
-                 fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None,decalLeft=0, decalTop=0):
+                 fontLegend=pygame.font.SysFont('Arial', 25), placeHolder=None, decalLeft=0, decalTop=0):
 
         super().__init__(left, top, width, height, label, image, legend, color, colorLabel, fontLabel, fontLegend)
         self.placeHolder = placeHolder
@@ -82,7 +92,7 @@ class Textbox(object):
         self.text += add
 
     def text_backspace(self):
-        if(self.text != ''):
+        if (self.text != ''):
             self.text = self.text[:-1]
 
     def reset(self):
@@ -91,7 +101,7 @@ class Textbox(object):
     def draw(self, screen):
         surface = self._surface()
         img = pygame.image.load("./assets/textcursor.png")
-        if(self.text == '' and self.target == 0):
+        if (self.text == '' and self.target == 0):
             labelSurface = self.fontLabel.render("Enter the youtube link here", True, (150, 150, 150))
         else:
             labelSurface = self.fontLabel.render(self.text, True, (255, 255, 255))
@@ -99,11 +109,12 @@ class Textbox(object):
         surface.blit(labelSurface, labelSurface_rect)
 
         screen.blit(surface, (self.y, self.x))
-        if(self.count < 10 and self.target == 1):
-            screen.blit(img, (((self.y+(self.y+self.width))/2)-6+(labelSurface.get_size()[0]/2), self.x+3))
+        if (self.count < 10 and self.target == 1):
+            screen.blit(img,
+                        (((self.y + (self.y + self.width)) / 2) - 6 + (labelSurface.get_size()[0] / 2), self.x + 3))
 
         self.count = self.count + 1
-        if(self.count > 20):
+        if (self.count > 20):
             self.count = 0
 
     def _surface(self):
@@ -171,3 +182,22 @@ class PauseScreen(object):
         labelSurface_rect.top = 0
         surfacePause.blit(labelSurface, labelSurface_rect)
         screen.blit(surfacePause, (self.top, self.left))
+
+
+class VideoSprite(pygame.sprite.Sprite):
+    FFMPEG_BIN = "/usr/bin/ffmpeg"  # Full path to ffmpeg executable
+
+    def __init__(self, rect, filename, FPS=40):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((rect.width, rect.height), pygame.HWSURFACE)
+        self.rect = self.image.get_rect()
+        self.rect.x = rect.x
+        self.rect.y = rect.y
+        self.video = moviepy.editor.VideoFileClip(filename).resize((self.rect.width, self.rect.height))
+        # Used to maintain frame-rate
+        self.video_stop = False
+
+    def update(self, time=pygame.time.get_ticks()):
+        if not self.video_stop:
+            raw_image = self.video.get_frame(time / 1000)
+            self.image = pygame.image.frombuffer(raw_image, (self.rect.width, self.rect.height), 'RGB')
