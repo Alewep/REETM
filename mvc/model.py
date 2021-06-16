@@ -14,6 +14,7 @@ import wget
 import subprocess
 from pytube import YouTube
 import youtube_dl
+import warnings
 
 PATHOFLIBRARY = "Library"
 PREPROCESSEDPATH = "preprocessed"
@@ -160,8 +161,9 @@ class GameEngine(object):
             mp4ToWav(self.music.videoPath(), self.music.musicPath())
             self.charginMusic()
 
-        except:
 
+        except Exception as e:
+            warnings.warn(str(e))
             try:
                 ydl_opts = {
                     'format': 'mp4',
@@ -186,7 +188,8 @@ class GameEngine(object):
                 # download the thumbnail
                 wget.download(video["thumbnail"], out=self.music.thumbnailPath())
                 self.charginMusic()
-            except:
+            except Exception as e:
+                warnings.warn(str(e))
                 self.evManager.Post(StateChangeEvent(STATE_MENU))
 
     def loading(self, target, args=[]):
@@ -414,6 +417,7 @@ class GameEngine(object):
             pygame.mixer.init()
 
             pygame.mixer.music.load(self.music.musicPath())
+            pygame.mixer.music.pause()
 
             self.duration = musicfile.getduration() * 1000  # ms
             self.gamescore = 0
@@ -423,7 +427,8 @@ class GameEngine(object):
             timer.reset()
             self.timeVideoCheckPoint = timer.time()
             self.passVideo = False
-        except:
+        except Exception as e:
+            warnings.warn(str(e))
             self.state.push(STATE_MENU)
 
     def initialize(self):
@@ -442,7 +447,6 @@ class GameEngine(object):
             pass
         elif self.state.peek() == STATE_PLAY:
             self.loading(target=self.charginMusic)
-
 
 
 # State machine constants for the StateMachine class below
