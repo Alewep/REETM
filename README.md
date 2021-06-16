@@ -11,8 +11,8 @@ you need to install conda first : [anaconda documentation](https://docs.anaconda
 
 ## Installation and start-up
 
-#### On Linux
-##### Installation
+### On Linux
+#### Installation
 use bash script in install folder **install_linux.sh** : ```bash ./install.sh```
 
 or 
@@ -24,7 +24,7 @@ conda env remove -n envReetm
 conda env create -f reetmEnv.yml
 ```
 
-##### Start-up
+#### Start-up
 use bash script in run folder **run_linux.sh** : ``` bash ./run.sh ```
 
 or 
@@ -34,10 +34,10 @@ conda activate envReetm
 python main.py
 ```
 
-#### On Windows
-##### Installation
+### On Windows
+#### Installation
 run bat script : **install_windows.bat** in install folder with administator priviledge.
-##### Start-up
+#### Start-up
 run bat script : **run_windows.bat** in run folder with administator priviledge.
 
 ## Authors
