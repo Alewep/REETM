@@ -6,10 +6,10 @@
 
 Reetm is a video game inspired by the game "drums hero" which procedurally create the levels according to the instruments perceived in the music
 
-### Prerequisites
+## Prerequisites
 you need to install conda first : [anaconda documentation](https://docs.anaconda.com/anaconda/)
 
-### Installation and start-up
+## Installation and start-up
 
 #### On Linux
 ##### Installation
